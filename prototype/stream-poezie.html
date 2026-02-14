@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Stream Poezie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Serif+Display:ital@0;1&family=Bodoni+Moda:ital,wght@0,400;1,400&family=Raleway:ital,wght@0,200;0,300;1,200&family=Josefin+Sans:ital,wght@0,300;0,400;1,300&family=Caveat:wght@400;500&family=Space+Mono:ital@0;1&family=Italiana&family=Poiret+One&family=Spectral:ital,wght@0,300;0,400;1,300&family=Unbounded:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  ::selection { background: rgba(232, 213, 183, 0.15); }
+
+  body {
+    background: #080604;
+    overflow: hidden;
+    height: 100dvh;
+    width: 100vw;
+    font-family: 'Spectral', serif;
+  }
+
+  #bg {
+    position: fixed; inset: 0;
+    animation: bgPulse 40s ease infinite;
+    z-index: 0;
+  }
+  @keyframes bgPulse {
+    0%, 100% {
+      background: radial-gradient(ellipse at 30% 50%, rgba(25,18,10,0.9) 0%, transparent 70%),
+                  radial-gradient(ellipse at 70% 30%, rgba(12,20,28,0.6) 0%, transparent 60%),
+                  #080604;
+    }
+    50% {
+      background: radial-gradient(ellipse at 60% 40%, rgba(25,18,10,0.9) 0%, transparent 70%),
+                  radial-gradient(ellipse at 30% 70%, rgba(12,20,28,0.6) 0%, transparent 60%),
+                  #080604;
+    }
+  }
+
+  #grain {
+    position: fixed; inset: 0;
+    opacity: 0.025;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1;
+  }
+
+  #verse-container {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; padding: 24px;
+  }
+  #verse {
+    max-width: min(85vw, 720px);
+    text-align: center;
+    line-height: 1.9;
+    letter-spacing: 0.025em;
+    white-space: pre-line;
+    padding: 0 16px;
+    opacity: 0;
+    transition: opacity 2.8s ease-in-out;
+  }
+  #verse.visible { opacity: 1; }
+
+  #play-btn {
+    position: fixed; top: 24px; left: 24px; z-index: 1000;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 8px 16px; cursor: pointer;
+    color: rgba(255,255,255,0.4);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px; letter-spacing: 2px;
+    backdrop-filter: blur(12px); transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #play-btn:hover { background: rgba(255,255,255,0.08); }
+  #play-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #a8c4d4;
+    box-shadow: 0 0 10px rgba(168,196,212,0.4);
+    animation: pulse 2.5s ease infinite;
+  }
+  #play-dot.paused { background: rgba(255,255,255,0.25); box-shadow: none; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  #upload-btn {
+    position: fixed; bottom: 28px; right: 28px; z-index: 1000;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50%; width: 52px; height: 52px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(12px); transition: all 0.4s ease;
+    color: #d4c8b8; font-size: 24px; font-weight: 300;
+  }
+  #upload-btn:hover { background: rgba(255,255,255,0.1); }
+  #upload-btn.open { background: rgba(255,255,255,0.12); }
+
+  #upload-panel {
+    position: fixed; bottom: 92px; right: 28px; z-index: 999;
+    background: rgba(12,10,8,0.94);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 24px; width: 320px;
+    max-width: calc(100vw - 56px);
+    backdrop-filter: blur(24px);
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+  #upload-panel.open { display: block; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  #upload-panel h3 {
+    color: #e8d5b7; font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 400; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  #upload-panel .subtitle { color: rgba(255,255,255,0.35); font-size: 13px; margin-bottom: 18px; }
+
+  #drop-zone {
+    border: 1.5px dashed rgba(255,255,255,0.12);
+    border-radius: 12px; padding: 24px 16px; text-align: center;
+    cursor: pointer; transition: all 0.3s ease;
+  }
+  #drop-zone.dragover { border-color: rgba(232,213,183,0.5); background: rgba(232,213,183,0.04); }
+  #drop-zone .icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+  #drop-zone .label { color: rgba(255,255,255,0.45); font-size: 14px; line-height: 1.6; }
+  #drop-zone .sublabel { font-size: 12px; opacity: 0.6; }
+
+  #poem-input {
+    width: 100%; margin-top: 12px; padding: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; color: #d4c8b8;
+    font-family: 'Spectral', serif; font-size: 14px;
+    resize: vertical; min-height: 80px; outline: none; line-height: 1.6;
+  }
+  #poem-input:focus { border-color: rgba(255,255,255,0.2); }
+  #upload-panel .hint { margin-top: 6px; color: rgba(255,255,255,0.2); font-size: 11px; }
+
+  #info {
+    position: fixed; bottom: 28px; left: 28px; z-index: 100;
+    color: rgba(255,255,255,0.15); font-size: 12px; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="grain"></div>
+
+<div id="verse-container">
+  <div id="verse"></div>
+</div>
+
+<button id="play-btn">
+  <span id="play-dot"></span>
+  <span id="play-label">ŽIVĚ</span>
+</button>
+
+<button id="upload-btn" onclick="togglePanel()">+</button>
+
+<div id="upload-panel">
+  <h3>Nahrát básně</h3>
+  <p class="subtitle" id="stanza-count"></p>
+  <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📜</div>
+    <div class="label">
+      Přetáhněte .txt soubory<br>
+      <span class="sublabel">nebo klikněte pro výběr</span>
+    </div>
+  </div>
+  <input type="file" id="file-input" accept=".txt,text/plain" multiple style="display:none">
+  <textarea id="poem-input" placeholder="...nebo vložte text básně přímo sem"></textarea>
+  <p class="hint">Ctrl+Enter pro přidání do streamu</p>
+</div>
+
+<div id="info"></div>
+
+<script>
+const FONTS = [
+  { family: "'Playfair Display', serif", weight: "700" },
+  { family: "'Cormorant Garamond', serif", weight: "300" },
+  { family: "'DM Serif Display', serif", weight: "400" },
+  { family: "'Bodoni Moda', serif", weight: "400" },
+  { family: "'Raleway', sans-serif", weight: "200" },
+  { family: "'Josefin Sans', sans-serif", weight: "300" },
+  { family: "'Caveat', cursive", weight: "400" },
+  { family: "'Space Mono', monospace", weight: "400" },
+  { family: "'Italiana', serif", weight: "400" },
+  { family: "'Poiret One', sans-serif", weight: "400" },
+  { family: "'Spectral', serif", weight: "300" },
+  { family: "'Unbounded', sans-serif", weight: "300" },
+];
+
+const PALETTES = [
+  { text: "#e8d5b7", glow: "rgba(232,213,183,0.10)" },
+  { text: "#7eb8d4", glow: "rgba(126,184,212,0.10)" },
+  { text: "#d4a07e", glow: "rgba(212,160,126,0.10)" },
+  { text: "#8cc4a0", glow: "rgba(140,196,160,0.10)" },
+  { text: "#d48a8a", glow: "rgba(212,138,138,0.10)" },
+  { text: "#f5f0e8", glow: "rgba(245,240,232,0.08)" },
+  { text: "#b89cd4", glow: "rgba(184,156,212,0.10)" },
+  { text: "#d4c870", glow: "rgba(212,200,112,0.10)" },
+  { text: "#e0b0c0", glow: "rgba(224,176,192,0.10)" },
+  { text: "#90c8c8", glow: "rgba(144,200,200,0.10)" },
+];
+
+const SIZES = [18, 22, 26, 32, 40, 50];
+
+const DEFAULT_POEMS = [
+  "Byl pozdní večer, první máj,\nvečerní máj, byl lásky čas.\nHrdliččin zval ku lásce hlas,\nkde borový zaváněl háj.",
+  "Kdo v zlaté struny zahrát zná,\nten ztracen jest i jiným světům;\nneb hudba jest ta rajská brána,\nkudy se vchází nebem k květům.",
+  "Nad vodou strom se vážně kloní,\na v trávě leží tichý stín.\nKdes ve tmě slavík zpívá, zvoní,\njak flétna z hvězdných dálek, klín.",
+  "Ticho je v lese, ticho všude,\njak v kostele, když kněz se modlí.\nJen potok šumí, šepce, bude\nsi hrát, než zima přijde podlí.",
+  "Podzimní listí padá tiše,\nzlacené stopy na zemi.\nVítr si šeptá, nikdo slyší,\njak čas se ztrácí s okamžiky.",
+  "Měsíc se dívá přes okno,\nstříbrné světlo na podlaze.\nVšechno je tiché, všechno pokojno,\njak sen, co nikdo nevymaže.",
+  "Ráno se budí, rosa třpytí,\nna stéblech trávy diamanty.\nSvět je tak krásný, stojí za žití,\nkdyž slunce zlacuje ty instranty.",
+  "V dálce se modrá hora zvedá,\noblaka tančí na obzoru.\nDuše má touží, srdce hledá\ncestu zpět k dávnému hovoru.",
+];
+
+let allStanzas = [];
+let shuffled = [];
+let shuffleIndex = 0;
+let isPlaying = true;
+let panelOpen = false;
+let cycleTimeout = null;
+let lastFont = "";
+let lastPalette = null;
+let lastSize = 0;
+
+const verseEl = document.getElementById("verse");
+const playDot = document.getElementById("play-dot");
+const playLabel = document.getElementById("play-label");
+const countEl = document.getElementById("stanza-count");
+const infoEl = document.getElementById("info");
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Pick a value different from the last one
+function pickNew(arr, last) {
+  if (arr.length <= 1) return arr[0];
+  let choice;
+  do { choice = pick(arr); } while (choice === last);
+  return choice;
+}
+
+function splitIntoStanzas(text) {
+  return text.split(/\n\n+/).map(s => s.trim()).filter(s => s.length > 0);
+}
+
+function initStanzas() {
+  DEFAULT_POEMS.forEach(p => allStanzas.push(...splitIntoStanzas(p)));
+  updateCount();
+}
+
+function updateCount() {
+  countEl.textContent = allStanzas.length + " strof ve streamu";
+  infoEl.textContent = allStanzas.length + " strof · nekonečný stream";
+}
+
+function reshuffle() {
+  shuffled = [...allStanzas].sort(() => Math.random() - 0.5);
+  shuffleIndex = 0;
+}
+
+function nextStanza() {
+  if (!allStanzas.length) return null;
+  if (!shuffled.length || shuffleIndex >= shuffled.length) reshuffle();
+  return shuffled[shuffleIndex++];
+}
+
+function showVerse() {
+  if (!isPlaying) return;
+  const text = nextStanza();
+  if (!text) return;
+
+  // Always pick a DIFFERENT font, palette, size than last time
+  const font = pickNew(FONTS, lastFont);
+  const palette = pickNew(PALETTES, lastPalette);
+  const size = pickNew(SIZES, lastSize);
+  const italic = Math.random() > 0.7;
+
+  lastFont = font;
+  lastPalette = palette;
+  lastSize = size;
+
+  // Reset opacity immediately
+  verseEl.classList.remove("visible");
+  verseEl.style.fontFamily = font.family;
+  verseEl.style.fontWeight = font.weight;
+  verseEl.style.fontSize = "clamp(18px, " + (size / 10) + "vw + 6px, " + (size + 10) + "px)";
+  verseEl.style.color = palette.text;
+  verseEl.style.fontStyle = italic ? "italic" : "normal";
+  verseEl.style.textShadow = "0 0 80px " + palette.glow + ", 0 0 160px " + palette.glow;
+  verseEl.textContent = text;
+
+  // Fade in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      verseEl.classList.add("visible");
+    });
+  });
+
+  // Fade out
+  setTimeout(() => verseEl.classList.remove("visible"), 8000);
+
+  // Next cycle
+  cycleTimeout = setTimeout(showVerse, 11500);
+}
+
+function stopCycle() {
+  if (cycleTimeout) { clearTimeout(cycleTimeout); cycleTimeout = null; }
+}
+
+// Play/pause
+document.getElementById("play-btn").addEventListener("click", () => {
+  isPlaying = !isPlaying;
+  playLabel.textContent = isPlaying ? "ŽIVĚ" : "PAUZA";
+  playDot.className = isPlaying ? "" : "paused";
+  if (isPlaying) showVerse(); else stopCycle();
+});
+
+// Upload panel
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById("upload-panel").className = panelOpen ? "open" : "";
+  const btn = document.getElementById("upload-btn");
+  btn.className = panelOpen ? "open" : "";
+  btn.textContent = panelOpen ? "×" : "+";
+}
+
+function addPoems(text) {
+  const s = splitIntoStanzas(text).filter(s => s.length > 0);
+  if (s.length) {
+    allStanzas.push(...s);
+    shuffled = []; shuffleIndex = 0;
+    updateCount();
+  }
+}
+
+document.getElementById("file-input").addEventListener("change", e => {
+  Array.from(e.target.files).forEach(file => {
+    const r = new FileReader();
+    r.onload = ev => addPoems(ev.target.result);
+    r.readAsText(file);
+  });
+  e.target.value = "";
+});
+
+const dropZone = document.getElementById("drop-zone");
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault(); dropZone.classList.remove("dragover");
+  Array.from(e.dataTransfer.files).forEach(file => {
+    if (file.type === "text/plain" || file.name.endsWith(".txt")) {
+      const r = new FileReader();
+      r.onload = ev => addPoems(ev.target.result);
+      r.readAsText(file);
+    }
+  });
+});
+
+document.getElementById("poem-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    addPoems(e.target.value); e.target.value = "";
+  }
+});
+
+initStanzas();
+showVerse();
+</script>
+</body>
+</html>

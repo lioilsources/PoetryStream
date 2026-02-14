@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+*.swp
+*~
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Flutter/Dart
+poetry_stream/.dart_tool/
+poetry_stream/.packages
+poetry_stream/.pub-cache/
+poetry_stream/.pub/
+poetry_stream/build/
+poetry_stream/.flutter-plugins
+poetry_stream/.flutter-plugins-dependencies
+poetry_stream/pubspec.lock
+
+# iOS
+poetry_stream/ios/Pods/
+poetry_stream/ios/.symlinks/
+poetry_stream/ios/Flutter/Flutter.framework
+poetry_stream/ios/Flutter/Flutter.podspec
+poetry_stream/ios/Flutter/Generated.xcconfig
+poetry_stream/ios/Flutter/app.flx
+poetry_stream/ios/Flutter/App.framework
+poetry_stream/ios/Flutter/engine/
+poetry_stream/ios/Runner.xcworkspace/xcshareddata/
+poetry_stream/ios/ServiceDefinitions.json
+
+# Android
+poetry_stream/android/.gradle/
+poetry_stream/android/local.properties
+poetry_stream/android/key.properties
+poetry_stream/android/app/debug/
+poetry_stream/android/app/profile/
+poetry_stream/android/app/release/
+
+# Generated
+*.g.dart
+*.freezed.dart
