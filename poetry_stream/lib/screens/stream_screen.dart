@@ -10,6 +10,7 @@ import '../providers/verse_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
 import '../widgets/play_pause_button.dart';
+import '../widgets/paste_poem_button.dart';
 import '../widgets/verse_display.dart';
 
 class StreamScreen extends ConsumerStatefulWidget {
@@ -142,6 +143,17 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
                 color: Colors.white.withValues(alpha: 0.15),
                 letterSpacing: 0.5,
               ),
+            ),
+          ),
+
+          // Add poem button (bottom right)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 22,
+            right: 24,
+            child: PastePoemButton(
+              onSubmit: (text) {
+                ref.read(poemListProvider.notifier).addUserPoem(text);
+              },
             ),
           ),
         ],

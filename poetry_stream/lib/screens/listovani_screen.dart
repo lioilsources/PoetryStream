@@ -8,6 +8,7 @@ import '../providers/poem_providers.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
+import '../widgets/paste_poem_button.dart';
 import '../widgets/stanza_progress.dart';
 import '../widgets/verse_display.dart';
 
@@ -156,6 +157,17 @@ class _ListovaniScreenState extends ConsumerState<ListovaniScreen> {
                 ),
               ),
             ),
+
+          // Add poem button (bottom right)
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 22,
+            right: 24,
+            child: PastePoemButton(
+              onSubmit: (text) {
+                ref.read(poemListProvider.notifier).addUserPoem(text);
+              },
+            ),
+          ),
 
           // Stanza progress (bottom center)
           if (_showIndicators && _controller.buffer.isNotEmpty)

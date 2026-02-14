@@ -1,23 +1,56 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
-import '../core/constants/defaults.dart';
+import 'package:yaml/yaml.dart';
 import '../core/utils/stanza_parser.dart';
 import '../models/poem.dart';
 
 const _uuid = Uuid();
 
 class PoemListNotifier extends StateNotifier<List<Poem>> {
-  PoemListNotifier() : super(_buildDefaultPoems());
+  PoemListNotifier() : super([]) {
+    _load();
+  }
 
-  static List<Poem> _buildDefaultPoems() {
-    return defaultPoems.asMap().entries.map((entry) {
+  Future<void> _load() async {
+    final bundled = await _loadBundledPoems();
+    final user = await _loadUserPoems();
+    state = [...bundled, ...user];
+  }
+
+  static Future<List<Poem>> _loadBundledPoems() async {
+    final yamlString = await rootBundle.loadString('assets/poems/default.yaml');
+    final yamlList = loadYaml(yamlString) as YamlList;
+
+    return yamlList.asMap().entries.map((entry) {
+      final item = entry.value as YamlMap;
       return Poem(
         id: 'default_${entry.key}',
-        fullText: entry.value,
+        title: (item['title'] as String?) ?? '',
+        fullText: (item['text'] as String).trimRight(),
         collectionId: 'default',
         sortOrder: entry.key,
       );
     }).toList();
+  }
+
+  static Future<List<Poem>> _loadUserPoems() async {
+    final box = await Hive.openBox('poems');
+    final raw = box.get('user_poems');
+    if (raw == null) return [];
+
+    final list = (jsonDecode(raw as String) as List)
+        .map((e) => Poem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return list;
+  }
+
+  Future<void> _saveUserPoems() async {
+    final box = await Hive.openBox('poems');
+    final userPoems = state.where((p) => p.collectionId == 'user').toList();
+    await box.put('user_poems', jsonEncode(userPoems.map((p) => p.toJson()).toList()));
   }
 
   void addUserPoem(String text) {
@@ -33,14 +66,12 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
         sortOrder: state.length,
       ),
     ];
-  }
-
-  void addPoemsFromCollection(List<Poem> poems) {
-    state = [...state, ...poems];
+    _saveUserPoems();
   }
 
   void removePoem(String id) {
     state = state.where((p) => p.id != id).toList();
+    _saveUserPoems();
   }
 }
 
