@@ -4,7 +4,7 @@ import 'core/constants/visual.dart';
 import 'models/display_mode.dart';
 import 'providers/settings_provider.dart';
 import 'screens/stream_screen.dart';
-import 'screens/listovani_screen.dart';
+import 'screens/browsing_screen.dart';
 
 class PoetryStreamApp extends ConsumerWidget {
   const PoetryStreamApp({super.key});
@@ -36,10 +36,10 @@ class _ModeRouter extends ConsumerWidget {
 
     switch (settings.displayMode) {
       case DisplayMode.stream:
-      case DisplayMode.cteni:
+      case DisplayMode.reading:
         return const StreamScreen();
-      case DisplayMode.listovani:
-        return const ListovaniScreen();
+      case DisplayMode.browsing:
+        return const BrowsingScreen();
     }
   }
 }

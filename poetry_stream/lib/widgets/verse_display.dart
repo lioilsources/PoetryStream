@@ -27,10 +27,16 @@ class VerseDisplay extends StatelessWidget {
       curve: Curves.easeInOut,
       child: SizedBox(
         width: maxWidth,
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: _buildTextStyle(),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: maxWidth,
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: _buildTextStyle(),
+            ),
+          ),
         ),
       ),
     );

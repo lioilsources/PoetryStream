@@ -25,8 +25,8 @@ class ModeToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildOption(DisplayMode.stream, 'Stream'),
-          _buildOption(DisplayMode.cteni, 'Čtení'),
-          _buildOption(DisplayMode.listovani, 'Listování'),
+          _buildOption(DisplayMode.reading, 'Čtení'),
+          _buildOption(DisplayMode.browsing, 'Listování'),
         ],
       ),
     );

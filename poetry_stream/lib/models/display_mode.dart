@@ -1,1 +1,1 @@
-enum DisplayMode { stream, cteni, listovani }
+enum DisplayMode { stream, reading, browsing }
