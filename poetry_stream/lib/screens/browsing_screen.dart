@@ -9,6 +9,7 @@ import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
 import '../widgets/paste_poem_button.dart';
 import '../widgets/poem_list_button.dart';
+import '../widgets/store_button.dart';
 
 class BrowsingScreen extends ConsumerStatefulWidget {
   const BrowsingScreen({super.key});
@@ -156,6 +157,8 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
                   currentPoemIndex: _currentPoemIndex,
                   onPoemSelected: _onPoemSelected,
                 ),
+                const SizedBox(width: 10),
+                const StoreButton(),
                 const SizedBox(width: 10),
                 PastePoemButton(
                   onSubmit: (text) {

@@ -16,9 +16,13 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
 
   Future<void> _load() async {
     final bundled = await _loadBundledPoems();
+    final purchased = await _loadPurchasedPoems();
     final user = await _loadUserPoems();
-    state = [...bundled, ...user];
+    state = [...bundled, ...purchased, ...user];
   }
+
+  /// Reload all poems (called after a purchase unlocks new content).
+  void refresh() => _load();
 
   static Future<List<Poem>> _loadBundledPoems() async {
     final yamlString = await rootBundle.loadString('assets/poems/default.yaml');
@@ -34,6 +38,24 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
         sortOrder: entry.key,
       );
     }).toList();
+  }
+
+  static Future<List<Poem>> _loadPurchasedPoems() async {
+    final box = await Hive.openBox('purchased_poems');
+    final List<Poem> all = [];
+    for (final key in box.keys) {
+      final raw = box.get(key);
+      if (raw == null) continue;
+      try {
+        final list = (jsonDecode(raw as String) as List)
+            .map((e) => Poem.fromJson(e as Map<String, dynamic>))
+            .toList();
+        all.addAll(list);
+      } catch (_) {
+        // Skip corrupted data
+      }
+    }
+    return all;
   }
 
   static Future<List<Poem>> _loadUserPoems() async {

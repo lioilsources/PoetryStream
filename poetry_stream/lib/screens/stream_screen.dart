@@ -11,6 +11,8 @@ import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
 import '../widgets/play_pause_button.dart';
 import '../widgets/paste_poem_button.dart';
+import '../widgets/poem_list_button.dart';
+import '../widgets/store_button.dart';
 import '../widgets/verse_display.dart';
 
 class StreamScreen extends ConsumerStatefulWidget {
@@ -146,14 +148,27 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
             ),
           ),
 
-          // Add poem button (bottom right)
+          // Bottom buttons row
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom + 22,
             right: 24,
-            child: PastePoemButton(
-              onSubmit: (text) {
-                ref.read(poemListProvider.notifier).addUserPoem(text);
-              },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PoemListButton(
+                  poems: ref.watch(poemListProvider),
+                  currentPoemIndex: 0,
+                  onPoemSelected: (_) {},
+                ),
+                const SizedBox(width: 10),
+                const StoreButton(),
+                const SizedBox(width: 10),
+                PastePoemButton(
+                  onSubmit: (text) {
+                    ref.read(poemListProvider.notifier).addUserPoem(text);
+                  },
+                ),
+              ],
             ),
           ),
         ],

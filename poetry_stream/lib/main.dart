@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
+import 'providers/purchase_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,5 +24,12 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
 
-  runApp(const ProviderScope(child: PoetryStreamApp()));
+  // Initialize purchase provider early to catch purchase stream events
+  final container = ProviderContainer();
+  container.read(purchaseProvider);
+
+  runApp(UncontrolledProviderScope(
+    container: container,
+    child: const PoetryStreamApp(),
+  ));
 }
