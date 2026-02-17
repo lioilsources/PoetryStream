@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,25 +20,34 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
     final purchased = await _loadPurchasedPoems();
     final user = await _loadUserPoems();
     state = [...bundled, ...purchased, ...user];
+    if (state.isEmpty) {
+      debugPrint('PoemListNotifier: no poems loaded, check assets/poems/default.yaml');
+    }
   }
 
   /// Reload all poems (called after a purchase unlocks new content).
   void refresh() => _load();
 
   static Future<List<Poem>> _loadBundledPoems() async {
-    final yamlString = await rootBundle.loadString('assets/poems/default.yaml');
-    final yamlList = loadYaml(yamlString) as YamlList;
+    try {
+      final yamlString =
+          await rootBundle.loadString('assets/poems/default.yaml');
+      final yamlList = loadYaml(yamlString) as YamlList;
 
-    return yamlList.asMap().entries.map((entry) {
-      final item = entry.value as YamlMap;
-      return Poem(
-        id: 'default_${entry.key}',
-        title: (item['title'] as String?) ?? '',
-        fullText: (item['text'] as String).trimRight(),
-        collectionId: 'default',
-        sortOrder: entry.key,
-      );
-    }).toList();
+      return yamlList.asMap().entries.map((entry) {
+        final item = entry.value as YamlMap;
+        return Poem(
+          id: 'default_${entry.key}',
+          title: (item['title'] as String?) ?? '',
+          fullText: (item['text'] as String).trimRight(),
+          collectionId: 'default',
+          sortOrder: entry.key,
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Failed to load bundled poems: $e');
+      return [];
+    }
   }
 
   static Future<List<Poem>> _loadPurchasedPoems() async {
@@ -59,14 +69,19 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
   }
 
   static Future<List<Poem>> _loadUserPoems() async {
-    final box = await Hive.openBox('poems');
-    final raw = box.get('user_poems');
-    if (raw == null) return [];
+    try {
+      final box = await Hive.openBox('poems');
+      final raw = box.get('user_poems');
+      if (raw == null) return [];
 
-    final list = (jsonDecode(raw as String) as List)
-        .map((e) => Poem.fromJson(e as Map<String, dynamic>))
-        .toList();
-    return list;
+      final list = (jsonDecode(raw as String) as List)
+          .map((e) => Poem.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return list;
+    } catch (e) {
+      debugPrint('Failed to load user poems: $e');
+      return [];
+    }
   }
 
   Future<void> _saveUserPoems() async {

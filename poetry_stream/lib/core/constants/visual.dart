@@ -24,7 +24,6 @@ class VisualConstants {
     VerseFont('Josefin Sans', FontWeight.w300),
     VerseFont('Caveat', FontWeight.w400),
     VerseFont('Space Mono', FontWeight.w400),
-    VerseFont('Italiana', FontWeight.w400),
     VerseFont('Poiret One', FontWeight.w400),
     VerseFont('Spectral', FontWeight.w300),
     VerseFont('Unbounded', FontWeight.w300),

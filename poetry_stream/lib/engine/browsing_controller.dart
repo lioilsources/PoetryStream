@@ -63,14 +63,27 @@ class BrowsingController {
   int get totalDisplayPoems => _displayPoems.length;
 
   /// Scroll to a specific poem by its corpus index (0-based).
-  void scrollToPoem(int poemIndex) {
+  /// [topInset] is the total visual offset from the top of the screen
+  /// to where ListView content begins (safe area + padding).
+  void scrollToPoem(int poemIndex, {double topInset = 0}) {
+    if (!scrollController.hasClients || _corpusLength == 0) return;
+
     // Target the middle copy
     final displayIndex = _corpusLength + poemIndex;
     final key = sectionKeys[displayIndex];
     if (key == null || key.currentContext == null) return;
 
-    Scrollable.ensureVisible(
-      key.currentContext!,
+    final box = key.currentContext!.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+
+    // globalY = widget's current position relative to the screen top.
+    // We want the title at the top of the visible content area (below topInset).
+    final globalY = box.localToGlobal(Offset.zero).dy;
+    final targetOffset = scrollController.offset + globalY - topInset;
+    final pos = scrollController.position;
+
+    scrollController.animateTo(
+      targetOffset.clamp(pos.minScrollExtent, pos.maxScrollExtent),
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );

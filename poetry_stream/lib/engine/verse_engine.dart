@@ -30,15 +30,17 @@ class VerseEngine {
 
   // Poem data
   List<String> _allStanzas = [];
+  List<String> _poemTitles = [];
 
-  // Stream mode (random shuffle)
-  List<String> _shuffledStanzas = [];
+  // Stream mode (random shuffle) — tracks which poem each stanza belongs to
+  List<_StanzaRef> _shuffledRefs = [];
   int _shuffleIndex = 0;
 
-  // Čtení mode (sequential)
+  // Čtení mode (random poem, sequential stanzas)
   int _seqPoemIndex = 0;
   int _seqStanzaIndex = 0;
   List<List<String>> _poemStanzas = [];
+  List<int> _poemOrder = []; // random order of poem indices
 
   // Style tracking (avoid repeats)
   int _lastFontIdx = -1;
@@ -59,16 +61,19 @@ class VerseEngine {
 
   bool get isPlaying => _isPlaying;
   int get stanzaCount => _allStanzas.length;
+  int get poemCount => _poemStanzas.length;
 
-  void setPoems(List<String> poems) {
+  void setPoems(List<String> poems, List<String> titles) {
     _allStanzas = poems.expand((p) => splitIntoStanzas(p)).toList();
     _poemStanzas = poems.map((p) => splitIntoStanzas(p)).toList();
+    _poemTitles = titles;
 
     // Reset state
-    _shuffledStanzas = [];
+    _shuffledRefs = [];
     _shuffleIndex = 0;
     _seqPoemIndex = 0;
     _seqStanzaIndex = 0;
+    _poemOrder = [];
 
     if (_isPlaying) {
       _restartCycle();
@@ -83,6 +88,7 @@ class VerseEngine {
       _seqPoemIndex = 0;
       _seqStanzaIndex = 0;
       _shuffleIndex = 0;
+      _poemOrder = [];
     }
 
     if (_isPlaying) {
@@ -107,6 +113,18 @@ class VerseEngine {
     _isPlaying ? pause() : play();
   }
 
+  /// Jump to the first stanza of the given poem index and restart playback.
+  void jumpToPoem(int poemIndex) {
+    if (_poemStanzas.isEmpty) return;
+    final clamped = poemIndex.clamp(0, _poemStanzas.length - 1);
+    // For Čtení, rebuild order starting with the selected poem
+    _poemOrder = [clamped, ...List.generate(_poemStanzas.length, (i) => i)..shuffle(_random)];
+    _poemOrder.removeAt(_poemOrder.lastIndexOf(clamped)); // remove duplicate
+    _seqPoemIndex = 0;
+    _seqStanzaIndex = 0;
+    _restartCycle();
+  }
+
   void dispose() {
     _timer?.cancel();
     _timer = null;
@@ -125,38 +143,46 @@ class VerseEngine {
   void _showNext() {
     if (!_isPlaying || _allStanzas.isEmpty) return;
 
-    final text = _config.mode == DisplayMode.stream
+    final ref = _config.mode == DisplayMode.stream
         ? _nextRandom()
         : _nextSequential();
 
-    if (text == null) return;
+    if (ref == null) return;
 
     final style = _generateStyle();
+    final title = ref.title;
+    final stanzaIdx = ref.stanzaIndex;
 
     // Phase: fadeIn
     onStateChanged(VerseState(
-      text: text,
+      text: ref.text,
       style: style,
       phase: VersePhase.fadeIn,
       isPlaying: true,
+      poemTitle: title,
+      stanzaIndex: stanzaIdx,
     ));
 
     // Phase: display (after fadeIn completes)
     _timer = Timer(_config.fadeInDuration, () {
       onStateChanged(VerseState(
-        text: text,
+        text: ref.text,
         style: style,
         phase: VersePhase.display,
         isPlaying: true,
+        poemTitle: title,
+        stanzaIndex: stanzaIdx,
       ));
 
       // Phase: fadeOut (after display duration)
       _timer = Timer(_config.displayDuration, () {
         onStateChanged(VerseState(
-          text: text,
+          text: ref.text,
           style: style,
           phase: VersePhase.fadeOut,
           isPlaying: true,
+          poemTitle: title,
+          stanzaIndex: stanzaIdx,
         ));
 
         // Next verse (after fadeOut completes)
@@ -167,36 +193,63 @@ class VerseEngine {
     });
   }
 
-  String? _nextRandom() {
+  _StanzaRef? _nextRandom() {
     if (_allStanzas.isEmpty) return null;
-    if (_shuffledStanzas.isEmpty || _shuffleIndex >= _shuffledStanzas.length) {
-      _shuffledStanzas = List.of(_allStanzas)..shuffle(_random);
+    if (_shuffledRefs.isEmpty || _shuffleIndex >= _shuffledRefs.length) {
+      // Build refs for all stanzas across all poems
+      _shuffledRefs = [];
+      for (int p = 0; p < _poemStanzas.length; p++) {
+        final title = _poemTitle(p);
+        for (int s = 0; s < _poemStanzas[p].length; s++) {
+          _shuffledRefs.add(_StanzaRef(
+            text: _poemStanzas[p][s],
+            title: title,
+            stanzaIndex: s,
+          ));
+        }
+      }
+      _shuffledRefs.shuffle(_random);
       _shuffleIndex = 0;
     }
-    return _shuffledStanzas[_shuffleIndex++];
+    return _shuffledRefs[_shuffleIndex++];
   }
 
-  String? _nextSequential() {
+  _StanzaRef? _nextSequential() {
     if (_poemStanzas.isEmpty) return null;
+
+    // Build random poem order if needed
+    if (_poemOrder.isEmpty) {
+      _poemOrder = List.generate(_poemStanzas.length, (i) => i)..shuffle(_random);
+      _seqPoemIndex = 0;
+      _seqStanzaIndex = 0;
+    }
 
     // Skip empty poems
     int attempts = 0;
-    while (_poemStanzas[_seqPoemIndex].isEmpty) {
-      _seqPoemIndex = (_seqPoemIndex + 1) % _poemStanzas.length;
+    while (_poemStanzas[_poemOrder[_seqPoemIndex]].isEmpty) {
+      _seqPoemIndex = (_seqPoemIndex + 1) % _poemOrder.length;
       attempts++;
-      if (attempts >= _poemStanzas.length) return null;
+      if (attempts >= _poemOrder.length) return null;
     }
 
-    final stanzas = _poemStanzas[_seqPoemIndex];
+    final poemIdx = _poemOrder[_seqPoemIndex];
+    final stanzas = _poemStanzas[poemIdx];
     final text = stanzas[_seqStanzaIndex];
+    final title = _poemTitle(poemIdx);
+
+    final ref = _StanzaRef(text: text, title: title, stanzaIndex: _seqStanzaIndex);
 
     _seqStanzaIndex++;
     if (_seqStanzaIndex >= stanzas.length) {
       _seqStanzaIndex = 0;
-      _seqPoemIndex = (_seqPoemIndex + 1) % _poemStanzas.length;
+      _seqPoemIndex = (_seqPoemIndex + 1) % _poemOrder.length;
+      // Reshuffle when we've gone through all poems
+      if (_seqPoemIndex == 0) {
+        _poemOrder.shuffle(_random);
+      }
     }
 
-    return text;
+    return ref;
   }
 
   VerseStyle _generateStyle() {
@@ -225,6 +278,11 @@ class VerseEngine {
     );
   }
 
+  String _poemTitle(int poemIndex) {
+    final raw = poemIndex < _poemTitles.length ? _poemTitles[poemIndex] : '';
+    return raw.isNotEmpty ? raw : 'Báseň ${poemIndex + 1}';
+  }
+
   int _pickDifferentIndex(int length, int lastIndex) {
     if (length <= 1) return 0;
     int idx;
@@ -233,4 +291,16 @@ class VerseEngine {
     } while (idx == lastIndex);
     return idx;
   }
+}
+
+class _StanzaRef {
+  final String text;
+  final String title;
+  final int stanzaIndex;
+
+  const _StanzaRef({
+    required this.text,
+    required this.title,
+    required this.stanzaIndex,
+  });
 }

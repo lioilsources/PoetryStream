@@ -27,16 +27,10 @@ class VerseDisplay extends StatelessWidget {
       curve: Curves.easeInOut,
       child: SizedBox(
         width: maxWidth,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: SizedBox(
-            width: maxWidth,
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: _buildTextStyle(),
-            ),
-          ),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: _buildTextStyle(),
         ),
       ),
     );
@@ -76,8 +70,6 @@ class VerseDisplay extends StatelessWidget {
         return GoogleFonts.caveat();
       case 'Space Mono':
         return GoogleFonts.spaceMono();
-      case 'Italiana':
-        return GoogleFonts.italiana();
       case 'Poiret One':
         return GoogleFonts.poiretOne();
       case 'Spectral':

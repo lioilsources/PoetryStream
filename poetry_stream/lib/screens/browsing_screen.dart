@@ -69,7 +69,8 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
   }
 
   void _onPoemSelected(int poemIndex) {
-    _controller.scrollToPoem(poemIndex);
+    final topInset = MediaQuery.of(context).padding.top + 80;
+    _controller.scrollToPoem(poemIndex, topInset: topInset);
     setState(() => _currentPoemIndex = poemIndex);
   }
 
@@ -116,20 +117,24 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
 
           // Continuous scroll content
           Positioned.fill(
-            child: ListView.builder(
-              controller: _controller.scrollController,
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 80,
-                bottom: MediaQuery.of(context).padding.bottom + 80,
-                left: 32,
-                right: 32,
+            child: SafeArea(
+              bottom: false,
+              child: ListView.builder(
+                cacheExtent: 99999,
+                controller: _controller.scrollController,
+                padding: EdgeInsets.only(
+                  top: 80,
+                  bottom: MediaQuery.of(context).padding.bottom + 80,
+                  left: 32,
+                  right: 32,
+                ),
+                itemCount: _controller.totalDisplayPoems,
+                itemBuilder: (context, index) {
+                  final poem = _controller.displayPoems[index];
+                  final key = _controller.sectionKeys[index];
+                  return _PoemSection(key: key, poem: poem);
+                },
               ),
-              itemCount: _controller.totalDisplayPoems,
-              itemBuilder: (context, index) {
-                final poem = _controller.displayPoems[index];
-                final key = _controller.sectionKeys[index];
-                return _PoemSection(key: key, poem: poem);
-              },
             ),
           ),
 
@@ -145,25 +150,58 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
             ),
           ),
 
-          // Bottom buttons row
+          // Bottom buttons + footer
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 22,
+            bottom: MediaQuery.of(context).padding.bottom + 8,
+            left: 24,
             right: 24,
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PoemListButton(
-                  poems: poems,
-                  currentPoemIndex: _currentPoemIndex,
-                  onPoemSelected: _onPoemSelected,
+                // Buttons row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    PoemListButton(
+                      poems: poems,
+                      currentPoemIndex: _currentPoemIndex,
+                      onPoemSelected: _onPoemSelected,
+                    ),
+                    const SizedBox(width: 10),
+                    const StoreButton(),
+                    const SizedBox(width: 10),
+                    PastePoemButton(
+                      onSubmit: (text) {
+                        ref.read(poemListProvider.notifier).addUserPoem(text);
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                const StoreButton(),
-                const SizedBox(width: 10),
-                PastePoemButton(
-                  onSubmit: (text) {
-                    ref.read(poemListProvider.notifier).addUserPoem(text);
-                  },
+                const SizedBox(height: 6),
+                // Footer info
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Builder(builder: (context) {
+                    final totalPoems = _controller.poemCount;
+                    final currentIdx = _currentPoemIndex;
+                    // Calculate total stanzas across all poems
+                    int totalStanzas = 0;
+                    int stanzasBefore = 0;
+                    for (int i = 0; i < poems.length; i++) {
+                      final count = poems[i].stanzas.length;
+                      if (i < currentIdx) stanzasBefore += count;
+                      totalStanzas += count;
+                    }
+                    final stanzasAfter = totalStanzas - stanzasBefore - (poems.isNotEmpty ? poems[currentIdx].stanzas.length : 0);
+                    return Text(
+                      '[${currentIdx + 1}/$totalPoems]·[$stanzasBefore:$stanzasAfter]',
+                      style: GoogleFonts.spectral(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.15),
+                        letterSpacing: 0.5,
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -182,53 +220,55 @@ class _PoemSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Poem title
-        Center(
-          child: Text(
-            poem.title.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.spectral(
-              fontSize: 14,
-              color: Colors.white.withValues(alpha: 0.3),
-              letterSpacing: 2,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-        const SizedBox(height: 28),
-
-        // Stanzas
-        for (int i = 0; i < poem.stanzas.length; i++) ...[
-          Text(
-            poem.stanzas[i],
-            style: GoogleFonts.spectral(
-              fontSize: 18,
-              color: Colors.white.withValues(alpha: 0.7),
-              height: 1.6,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          if (i < poem.stanzas.length - 1) const SizedBox(height: 18),
-        ],
-
-        // Divider between poems
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: Center(
-            child: Text(
-              '·  ·  ·',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.white.withValues(alpha: 0.1),
-                letterSpacing: 8,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Poem title
+            Text(
+              poem.title.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spectral(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.3),
+                letterSpacing: 2,
+                fontWeight: FontWeight.w400,
               ),
             ),
-          ),
+            const SizedBox(height: 28),
+
+            // Stanzas
+            for (int i = 0; i < poem.stanzas.length; i++) ...[
+              Text(
+                poem.stanzas[i],
+                textAlign: TextAlign.center,
+                style: GoogleFonts.spectral(
+                  fontSize: 18,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  height: 1.6,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              if (i < poem.stanzas.length - 1) const SizedBox(height: 18),
+            ],
+
+            // Divider between poems
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
+              child: Text(
+                '·  ·  ·',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white.withValues(alpha: 0.1),
+                  letterSpacing: 8,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

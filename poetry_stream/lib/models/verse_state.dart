@@ -7,12 +7,16 @@ class VerseState {
   final VerseStyle style;
   final VersePhase phase;
   final bool isPlaying;
+  final String poemTitle;
+  final int stanzaIndex; // 0-based index within the poem
 
   const VerseState({
     required this.text,
     required this.style,
     required this.phase,
     required this.isPlaying,
+    this.poemTitle = '',
+    this.stanzaIndex = 0,
   });
 
   double get targetOpacity {
@@ -31,12 +35,16 @@ class VerseState {
     VerseStyle? style,
     VersePhase? phase,
     bool? isPlaying,
+    String? poemTitle,
+    int? stanzaIndex,
   }) {
     return VerseState(
       text: text ?? this.text,
       style: style ?? this.style,
       phase: phase ?? this.phase,
       isPlaying: isPlaying ?? this.isPlaying,
+      poemTitle: poemTitle ?? this.poemTitle,
+      stanzaIndex: stanzaIndex ?? this.stanzaIndex,
     );
   }
 }

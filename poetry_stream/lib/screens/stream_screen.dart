@@ -11,7 +11,6 @@ import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
 import '../widgets/play_pause_button.dart';
 import '../widgets/paste_poem_button.dart';
-import '../widgets/poem_list_button.dart';
 import '../widgets/store_button.dart';
 import '../widgets/verse_display.dart';
 
@@ -41,7 +40,10 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
     final settings = ref.read(settingsProvider);
     final notifier = ref.read(verseProvider.notifier);
 
-    notifier.setPoems(poems.map((p) => p.fullText).toList());
+    notifier.setPoems(
+      poems.map((p) => p.fullText).toList(),
+      poems.map((p) => p.title).toList(),
+    );
     notifier.updateConfig(VerseEngineConfig(
       fadeInDuration:
           Duration(milliseconds: (settings.fadeDurationSec * 1000).round()),
@@ -56,7 +58,6 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
   Widget build(BuildContext context) {
     final verseState = ref.watch(verseProvider);
     final settings = ref.watch(settingsProvider);
-    final stanzaCount = ref.watch(stanzaCountProvider);
 
     // Sync engine config when settings change
     ref.listen(settingsProvider, (prev, next) {
@@ -77,9 +78,10 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
 
     // Sync poems
     ref.listen(poemListProvider, (prev, next) {
-      ref
-          .read(verseProvider.notifier)
-          .setPoems(next.map((p) => p.fullText).toList());
+      ref.read(verseProvider.notifier).setPoems(
+            next.map((p) => p.fullText).toList(),
+            next.map((p) => p.title).toList(),
+          );
     });
 
     return Scaffold(
@@ -94,19 +96,23 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
           // Grain overlay
           const Positioned.fill(child: GrainOverlay()),
 
-          // Verse display (centered)
+          // Verse display (centered, respects safe area in landscape)
           if (verseState != null)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: VerseDisplay(
-                  text: verseState.text,
-                  style: verseState.style,
-                  opacity: verseState.targetOpacity,
-                  fadeDuration: Duration(
-                    milliseconds: verseState.phase == VersePhase.fadeOut
-                        ? 700
-                        : (settings.fadeDurationSec * 1000).round(),
+            Positioned.fill(
+              child: SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: VerseDisplay(
+                      text: verseState.text,
+                      style: verseState.style,
+                      opacity: verseState.targetOpacity,
+                      fadeDuration: Duration(
+                        milliseconds: verseState.phase == VersePhase.fadeOut
+                            ? 700
+                            : (settings.fadeDurationSec * 1000).round(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -134,40 +140,42 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
             ),
           ),
 
-          // Info text (bottom left)
+          // Bottom buttons + footer
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 28,
-            left: 28,
-            child: Text(
-              '$stanzaCount strof · nekonečný stream',
-              style: GoogleFonts.spectral(
-                fontSize: 12,
-                color: Colors.white.withValues(alpha: 0.15),
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-
-          // Bottom buttons row
-          Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 22,
+            bottom: MediaQuery.of(context).padding.bottom + 8,
+            left: 24,
             right: 24,
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PoemListButton(
-                  poems: ref.watch(poemListProvider),
-                  currentPoemIndex: 0,
-                  onPoemSelected: (_) {},
+                // Buttons row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const StoreButton(),
+                    const SizedBox(width: 10),
+                    PastePoemButton(
+                      onSubmit: (text) {
+                        ref.read(poemListProvider.notifier).addUserPoem(text);
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                const StoreButton(),
-                const SizedBox(width: 10),
-                PastePoemButton(
-                  onSubmit: (text) {
-                    ref.read(poemListProvider.notifier).addUserPoem(text);
-                  },
-                ),
+                if (verseState != null && verseState.poemTitle.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  // Footer info — reactive to current verse
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '[${verseState.poemTitle}:${verseState.stanzaIndex + 1}]',
+                      style: GoogleFonts.spectral(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.15),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

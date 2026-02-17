@@ -6,29 +6,14 @@ import '../../models/poem_collection.dart';
 /// All paid collections available for purchase.
 const List<PoemCollection> availableCollections = [
   PoemCollection(
-    id: 'neruda',
-    title: 'Jan Neruda',
-    description: 'Výběr z Písní kosmických a Prostých motivů',
+    id: 'f01',
+    title: 'Simon Cline',
+    description: 'PRAVDU MÁ JEN JEDEN ANEB V ZORNÉM POLI MINISTERSTVA LÁSKY',
     isFree: false,
-    productId: 'poetrystream_collection_neruda',
-    poemCount: 3,
+    productId: 'poetrystream_collection_pravdu_ma_jen_jeden',
+    poemCount: 13,
   ),
-  PoemCollection(
-    id: 'erben',
-    title: 'Karel Jaromír Erben',
-    description: 'Balady z Kytice',
-    isFree: false,
-    productId: 'poetrystream_collection_erben',
-    poemCount: 3,
-  ),
-  PoemCollection(
-    id: 'halas',
-    title: 'František Halas',
-    description: 'Meditativní verše z Torza naděje',
-    isFree: false,
-    productId: 'poetrystream_collection_halas',
-    poemCount: 2,
-  ),
+  
 ];
 
 /// Map product ID (from store) → collection ID (internal).
