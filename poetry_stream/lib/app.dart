@@ -12,7 +12,7 @@ class PoetryStreamApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'PoetryStream',
+      title: 'Poesie Simona Clinae',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
