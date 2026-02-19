@@ -7,6 +7,7 @@ import '../providers/poem_providers.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
+import '../core/constants/build_config.dart';
 import '../widgets/paste_poem_button.dart';
 import '../widgets/poem_list_button.dart';
 import '../widgets/store_button.dart';
@@ -69,7 +70,7 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
   }
 
   void _onPoemSelected(int poemIndex) {
-    final topInset = MediaQuery.of(context).padding.top + 80;
+    final topInset = MediaQuery.of(context).padding.top + 68 + 20;
     _controller.scrollToPoem(poemIndex, topInset: topInset);
     setState(() => _currentPoemIndex = poemIndex);
   }
@@ -115,16 +116,19 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
           ),
           const Positioned.fill(child: GrainOverlay()),
 
-          // Continuous scroll content
-          Positioned.fill(
-            child: SafeArea(
-              bottom: false,
+          // Continuous scroll content — clipped between top and bottom button zones
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 68,
+            bottom: MediaQuery.of(context).padding.bottom + 76,
+            left: 0,
+            right: 0,
+            child: ClipRect(
               child: ListView.builder(
                 cacheExtent: 99999,
                 controller: _controller.scrollController,
-                padding: EdgeInsets.only(
-                  top: 80,
-                  bottom: MediaQuery.of(context).padding.bottom + 80,
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  bottom: 20,
                   left: 32,
                   right: 32,
                 ),
@@ -162,18 +166,20 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (BuildConfig.showPastePoem) ...[
+                      PastePoemButton(
+                        onSubmit: (title, text) {
+                          ref.read(poemListProvider.notifier).addUserPoem(title, text);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    const StoreButton(),
+                    const SizedBox(width: 10),
                     PoemListButton(
                       poems: poems,
                       currentPoemIndex: _currentPoemIndex,
                       onPoemSelected: _onPoemSelected,
-                    ),
-                    const SizedBox(width: 10),
-                    const StoreButton(),
-                    const SizedBox(width: 10),
-                    PastePoemButton(
-                      onSubmit: (text) {
-                        ref.read(poemListProvider.notifier).addUserPoem(text);
-                      },
                     ),
                   ],
                 ),
@@ -196,8 +202,8 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
                     return Text(
                       '[${currentIdx + 1}/$totalPoems]·[$stanzasBefore:$stanzasAfter]',
                       style: GoogleFonts.spectral(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.15),
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.22),
                         letterSpacing: 0.5,
                       ),
                     );

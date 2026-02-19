@@ -10,6 +10,7 @@ import '../providers/verse_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/mode_toggle.dart';
 import '../widgets/play_pause_button.dart';
+import '../core/constants/build_config.dart';
 import '../widgets/paste_poem_button.dart';
 import '../widgets/store_button.dart';
 import '../widgets/verse_display.dart';
@@ -100,17 +101,24 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
           if (verseState != null)
             Positioned.fill(
               child: SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: VerseDisplay(
-                      text: verseState.text,
-                      style: verseState.style,
-                      opacity: verseState.targetOpacity,
-                      fadeDuration: Duration(
-                        milliseconds: verseState.phase == VersePhase.fadeOut
-                            ? 700
-                            : (settings.fadeDurationSec * 1000).round(),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 60,
+                    bottom: 60,
+                    left: 24,
+                    right: 24,
+                  ),
+                  child: Center(
+                    child: ClipRect(
+                      child: VerseDisplay(
+                        text: verseState.text,
+                        style: verseState.style,
+                        opacity: verseState.targetOpacity,
+                        fadeDuration: Duration(
+                          milliseconds: verseState.phase == VersePhase.fadeOut
+                              ? 700
+                              : (settings.fadeDurationSec * 1000).round(),
+                        ),
                       ),
                     ),
                   ),
@@ -152,13 +160,15 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (BuildConfig.showPastePoem) ...[
+                      PastePoemButton(
+                        onSubmit: (title, text) {
+                          ref.read(poemListProvider.notifier).addUserPoem(title, text);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                    ],
                     const StoreButton(),
-                    const SizedBox(width: 10),
-                    PastePoemButton(
-                      onSubmit: (text) {
-                        ref.read(poemListProvider.notifier).addUserPoem(text);
-                      },
-                    ),
                   ],
                 ),
                 if (verseState != null && verseState.poemTitle.isNotEmpty) ...[
@@ -169,8 +179,8 @@ class _StreamScreenState extends ConsumerState<StreamScreen> {
                     child: Text(
                       '[${verseState.poemTitle}:${verseState.stanzaIndex + 1}]',
                       style: GoogleFonts.spectral(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.15),
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.22),
                         letterSpacing: 0.5,
                       ),
                     ),

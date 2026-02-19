@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/visual.dart';
 
 class PastePoemButton extends StatelessWidget {
-  final void Function(String text) onSubmit;
+  final void Function(String title, String text) onSubmit;
 
   const PastePoemButton({super.key, required this.onSubmit});
 
@@ -41,7 +41,7 @@ class PastePoemButton extends StatelessWidget {
 }
 
 class _PastePoemSheet extends StatefulWidget {
-  final void Function(String text) onSubmit;
+  final void Function(String title, String text) onSubmit;
 
   const _PastePoemSheet({required this.onSubmit});
 
@@ -59,9 +59,12 @@ class _PastePoemSheetState extends State<_PastePoemSheet> {
   }
 
   void _submit() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    widget.onSubmit(text);
+    final raw = _controller.text.trim();
+    if (raw.isEmpty) return;
+    final lines = raw.split('\n');
+    final title = lines.first.trim();
+    final body = lines.skip(1).join('\n').trim();
+    widget.onSubmit(title, body.isEmpty ? title : body);
     Navigator.of(context).pop();
   }
 
@@ -149,7 +152,7 @@ class _PastePoemSheetState extends State<_PastePoemSheet> {
                   height: 1.6,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Vložte text básně…',
+                  hintText: 'První řádek = název básně\n\nText básně…',
                   hintStyle: GoogleFonts.spectral(
                     fontSize: 16,
                     color: Colors.white.withValues(alpha: 0.15),

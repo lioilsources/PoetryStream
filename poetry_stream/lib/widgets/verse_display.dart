@@ -18,15 +18,12 @@ class VerseDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = screenWidth * 0.85 > 720 ? 720.0 : screenWidth * 0.85;
-
     return AnimatedOpacity(
       opacity: opacity,
       duration: fadeDuration,
       curve: Curves.easeInOut,
-      child: SizedBox(
-        width: maxWidth,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
         child: Text(
           text,
           textAlign: TextAlign.center,

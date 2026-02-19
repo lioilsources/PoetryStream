@@ -90,7 +90,7 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
     await box.put('user_poems', jsonEncode(userPoems.map((p) => p.toJson()).toList()));
   }
 
-  void addUserPoem(String text) {
+  void addUserPoem(String title, String text) {
     final stanzas = splitIntoStanzas(text);
     if (stanzas.isEmpty) return;
 
@@ -98,6 +98,7 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
       ...state,
       Poem(
         id: _uuid.v4(),
+        title: title,
         fullText: text.trim(),
         collectionId: 'user',
         sortOrder: state.length,
