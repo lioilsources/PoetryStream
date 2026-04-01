@@ -1,24 +1,41 @@
-# Poetry Stream
+# PoetryStream
 
-20/2/2026
-- Do not overflow buttons with texts
-- Remove Add Poem button
-- Rename Reading -> Poem; Listing -> Reading
-- Poem+ button on right
-- Bigger, more visible bottom navigation
-- First release
+A meditative Flutter app that streams Czech poetry with animated verse display. Features three display modes (Stream, Čtení, Listování), typographic variety across 12 fonts and 10 color palettes, and in-app purchases for poem packs.
 
-17/2/2026
-- Private testing - no release
-- Add poem browse picker, footnote and polish ideas about app modes
-- First real default free poem pack
-- A little negative feedback about overloading texts over UX buttons
+## Platforms
 
-14/2/2026
-- Happy vibe
-- STREAM, READING, LISTING modes plus manual poem add.
+| Platform | Status |
+|----------|--------|
+| iOS | Supported |
+| Android | Supported |
 
-13/2/2026
-- Idea: Make a stream of strokes
-- Claude talk during 20 min tram journey
-- HTML/JSX prototype on typographic stream of strokes
+## Features
+
+- Stream mode: random stanza shuffle with timer-based cycling
+- Čtení mode: sequential poem reading
+- Listování mode: manual swipe browsing
+- 12 Google Fonts, 10 color palettes, 6 sizes, 30% italic chance
+- Animated backgrounds
+- 8 bundled Czech poems (free)
+- In-app purchases for additional poem packs
+- All UI and content in Czech
+
+## Tech Stack
+
+- Flutter / Dart 3.10.7
+- Riverpod 2.6.1 (StateNotifier)
+- Hive (local persistence)
+- go_router, google_fonts
+- YAML poem format
+
+## Build
+
+```bash
+flutter run -d ios
+flutter run -d android
+```
+
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) — development history
+- [GALLERY.md](GALLERY.md) — screenshots and videos
