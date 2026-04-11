@@ -1,0 +1,58 @@
+name: Release Windows
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    name: Build & Release Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        working-directory: poetry_stream
+        run: flutter pub get
+
+      - name: Add Windows platform (first run only)
+        working-directory: poetry_stream
+        run: |
+          if (!(Test-Path "windows")) {
+            flutter create --platforms=windows .
+          }
+        shell: pwsh
+
+      - name: Build Windows
+        working-directory: poetry_stream
+        run: flutter build windows --release
+
+      - name: Package as ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $src = "poetry_stream\build\windows\x64\runner\Release"
+          $dest = "PoetryStream-$version-Windows.zip"
+          Compress-Archive -Path "$src\*" -DestinationPath $dest
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PoetryStream-${{ github.ref_name }}-Windows.zip
+          name: PoetryStream ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false

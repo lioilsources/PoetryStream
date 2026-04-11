@@ -1,0 +1,68 @@
+name: Release macOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    name: Build & Release macOS
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: poetry_stream
+        run: flutter pub get
+
+      - name: Build macOS
+        working-directory: poetry_stream
+        run: flutter build macos --release
+
+      - name: Package as DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "PoetryStream" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "poetry_stream.app" 200 190 \
+            --hide-extension "poetry_stream.app" \
+            --app-drop-link 600 185 \
+            "PoetryStream-${{ github.ref_name }}-macOS.dmg" \
+            "poetry_stream/build/macos/Build/Products/Release/"
+
+      - name: Notarize DMG (optional — requires Apple credentials)
+        if: ${{ secrets.APPLE_NOTARIZE_TEAM_ID != '' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_NOTARIZE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit \
+            "PoetryStream-${{ github.ref_name }}-macOS.dmg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$TEAM_ID" \
+            --wait
+          xcrun stapler staple "PoetryStream-${{ github.ref_name }}-macOS.dmg"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PoetryStream-${{ github.ref_name }}-macOS.dmg
+          name: PoetryStream ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
