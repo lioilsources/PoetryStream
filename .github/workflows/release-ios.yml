@@ -28,19 +28,44 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
-      - name: Build iOS (debug, no codesign)
-        working-directory: poetry_stream
-        run: flutter build ios --debug --no-codesign
+      - name: Install CocoaPods dependencies
+        working-directory: poetry_stream/ios
+        run: pod install
 
-      - name: Package as ZIP
+      - name: Import signing certificate
+        env:
+          CERTIFICATE_P12_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          cd poetry_stream/build/ios/iphoneos
-          zip -r "$OLDPWD/PoetryStream-${{ github.ref_name }}-iOS-debug.zip" Runner.app
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$CERTIFICATE_P12_BASE64" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security import $RUNNER_TEMP/certificate.p12 -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
 
-      - name: Upload to GitHub Release
+      - name: Install provisioning profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode > $PP_PATH
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build IPA (ad-hoc)
+        working-directory: poetry_stream
+        run: |
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload IPA to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: PoetryStream-${{ github.ref_name }}-iOS-debug.zip
+          files: poetry_stream/build/ios/ipa/*.ipa
           name: PoetryStream ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
