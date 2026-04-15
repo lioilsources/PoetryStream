@@ -29,23 +29,51 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
   void refresh() => _load();
 
   static Future<List<Poem>> _loadBundledPoems() async {
+    final List<Poem> all = [];
+
+    // Vždy načíst výchozí sbírku
+    all.addAll(await _loadCollectionYaml('default'));
+
+    // V debug módu: načíst všechny ostatní sbírky z assets/poems/ bez nákupu
+    if (kDebugMode) {
+      final manifestJson = await rootBundle.loadString('AssetManifest.json');
+      final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
+      final paths = manifest.keys
+          .where((k) => k.startsWith('assets/poems/') && k.endsWith('.yaml'))
+          .toList()
+        ..sort();
+
+      for (final path in paths) {
+        final filename = path.split('/').last;
+        final collectionId = filename.substring(0, filename.length - 5);
+        if (collectionId == 'default') continue;
+        all.addAll(await _loadCollectionYaml(collectionId));
+      }
+    }
+
+    return all;
+  }
+
+  /// Načte básně z jednoho YAML souboru. Podporuje plain list i map formát.
+  static Future<List<Poem>> _loadCollectionYaml(String collectionId) async {
     try {
       final yamlString =
-          await rootBundle.loadString('assets/poems/default.yaml');
-      final yamlList = loadYaml(yamlString) as YamlList;
-
-      return yamlList.asMap().entries.map((entry) {
+          await rootBundle.loadString('assets/poems/$collectionId.yaml');
+      final doc = loadYaml(yamlString);
+      final YamlList list =
+          doc is YamlMap ? doc['poems'] as YamlList : doc as YamlList;
+      return list.asMap().entries.map((entry) {
         final item = entry.value as YamlMap;
         return Poem(
-          id: 'default_${entry.key}',
+          id: '${collectionId}_${entry.key}',
           title: (item['title'] as String?) ?? '',
           fullText: (item['text'] as String).trimRight(),
-          collectionId: 'default',
+          collectionId: collectionId,
           sortOrder: entry.key,
         );
       }).toList();
     } catch (e) {
-      debugPrint('Failed to load bundled poems: $e');
+      debugPrint('Failed to load collection $collectionId: $e');
       return [];
     }
   }

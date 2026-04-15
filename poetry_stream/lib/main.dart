@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
+import 'data/repositories/collection_repository.dart';
 import 'providers/purchase_provider.dart';
 
 void main() async {
@@ -23,6 +24,9 @@ void main() async {
 
   // Initialize Hive
   await Hive.initFlutter();
+
+  // Discover paid collections from assets/poems/*.yaml
+  await initializeCollections();
 
   // Initialize purchase provider early to catch purchase stream events
   final container = ProviderContainer();
