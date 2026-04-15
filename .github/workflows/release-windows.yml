@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: Build & Release Windows
@@ -28,24 +31,15 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
-      - name: Add Windows platform (first run only)
+      - name: Build Windows (debug)
         working-directory: poetry_stream
-        run: |
-          if (!(Test-Path "windows")) {
-            flutter create --platforms=windows .
-          }
-        shell: pwsh
-
-      - name: Build Windows
-        working-directory: poetry_stream
-        run: flutter build windows --release
+        run: flutter build windows --debug
 
       - name: Package as ZIP
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
-          $src = "poetry_stream\build\windows\x64\runner\Release"
-          $dest = "PoetryStream-$version-Windows.zip"
+          $src = "poetry_stream\build\windows\x64\runner\Debug"
+          $dest = "PoetryStream-${{ github.ref_name }}-Windows.zip"
           Compress-Archive -Path "$src\*" -DestinationPath $dest
 
       - name: Upload to GitHub Release
@@ -55,4 +49,4 @@ jobs:
           name: PoetryStream ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
-          prerelease: false
+          prerelease: true
