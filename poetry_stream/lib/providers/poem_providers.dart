@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:yaml/yaml.dart';
 import '../core/utils/stanza_parser.dart';
+import '../data/repositories/collection_repository.dart';
 import '../models/poem.dart';
 
 const _uuid = Uuid();
@@ -29,26 +30,23 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
   void refresh() => _load();
 
   static Future<List<Poem>> _loadBundledPoems() async {
+    final manifestJson = await rootBundle.loadString('AssetManifest.json');
+    final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
+    final paths = manifest.keys
+        .where((k) => k.startsWith('assets/poems/') && k.endsWith('.yaml'))
+        .toList()
+      ..sort();
+
+    // ID placených sbírek — v produkci přeskočit (načítají se po nákupu)
+    final paidIds = availableCollections.map((c) => c.id).toSet();
+
     final List<Poem> all = [];
-
-    // Vždy načíst výchozí sbírku
-    all.addAll(await _loadCollectionYaml('default'));
-
-    // V debug módu: načíst všechny ostatní sbírky z assets/poems/ bez nákupu
-    if (kDebugMode) {
-      final manifestJson = await rootBundle.loadString('AssetManifest.json');
-      final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
-      final paths = manifest.keys
-          .where((k) => k.startsWith('assets/poems/') && k.endsWith('.yaml'))
-          .toList()
-        ..sort();
-
-      for (final path in paths) {
-        final filename = path.split('/').last;
-        final collectionId = filename.substring(0, filename.length - 5);
-        if (collectionId == 'default') continue;
-        all.addAll(await _loadCollectionYaml(collectionId));
-      }
+    for (final path in paths) {
+      final filename = path.split('/').last;
+      final collectionId = filename.substring(0, filename.length - 5);
+      final isPaid = paidIds.contains(collectionId);
+      if (isPaid && !kDebugMode) continue;
+      all.addAll(await _loadCollectionYaml(collectionId));
     }
 
     return all;
