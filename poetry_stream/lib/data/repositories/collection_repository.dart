@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import '../../models/poem.dart';
 import '../../models/poem_collection.dart';
@@ -23,10 +22,8 @@ Set<String> get allProductIds => {
 /// YAML soubory s klíčem `product_id` jsou považovány za placené.
 /// Volat při startu app před runApp().
 Future<void> initializeCollections() async {
-  final manifestJson = await rootBundle.loadString('AssetManifest.json');
-  final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
-
-  final poemPaths = manifest.keys
+  final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+  final poemPaths = manifest.listAssets()
       .where((k) => k.startsWith('assets/poems/') && k.endsWith('.yaml'))
       .toList()
     ..sort();

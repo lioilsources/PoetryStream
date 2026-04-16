@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -30,9 +30,8 @@ class PoemListNotifier extends StateNotifier<List<Poem>> {
   void refresh() => _load();
 
   static Future<List<Poem>> _loadBundledPoems() async {
-    final manifestJson = await rootBundle.loadString('AssetManifest.json');
-    final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
-    final paths = manifest.keys
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final paths = manifest.listAssets()
         .where((k) => k.startsWith('assets/poems/') && k.endsWith('.yaml'))
         .toList()
       ..sort();
