@@ -170,6 +170,7 @@ class _PoemListSheetState extends State<_PoemListSheet> {
           alignment: Alignment.topCenter,
           child: isExpanded
               ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: groupPoems.map((entry) {
                     final flatIndex = entry.key;
                     final poem = entry.value;
