@@ -1,4 +1,4 @@
-package com.poetrystream.poetry_stream
+package com.ol1n.PoetryStreamSC
 
 import io.flutter.embedding.android.FlutterActivity
 

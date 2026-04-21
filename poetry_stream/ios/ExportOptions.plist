@@ -12,7 +12,7 @@
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.poetrystream.poetry_stream</key>
+        <key>com.ol1n.PoetryStreamSC</key>
         <string>REPLACE_WITH_YOUR_ADHOC_PROFILE_NAME</string>
     </dict>
 </dict>
