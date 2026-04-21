@@ -1,7 +1,7 @@
 name: poetry_stream
 description: "Meditativní stream české poezie"
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+5
 
 environment:
   sdk: ^3.10.7
@@ -19,6 +19,9 @@ dependencies:
   yaml: ^3.1.3
   in_app_purchase: ^3.2.0
   path_provider: ^2.1.5
+
+dependency_overrides:
+  path_provider_android: '>=2.2.12 <2.3.0'
 
 dev_dependencies:
   flutter_test:
