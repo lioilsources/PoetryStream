@@ -91,11 +91,16 @@ jobs:
             -exportOptionsPlist poetry_stream/ios/ExportOptions.plist \
             -exportPath $RUNNER_TEMP/ipa
 
-      - name: Upload IPA to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ runner.temp }}/ipa/*.ipa
-          name: PoetryStream ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          draft: false
-          prerelease: true
+      - name: Upload to TestFlight
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo -n "$API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$(ls $RUNNER_TEMP/ipa/*.ipa)" \
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
