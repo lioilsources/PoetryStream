@@ -54,7 +54,19 @@ jobs:
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode > $PP_PATH
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          # Install under UUID filename as Xcode expects
+          UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
+          # Extract profile name for ExportOptions.plist
+          PROFILE_NAME=$(security cms -D -i "$PP_PATH" | plutil -extract Name raw -)
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+
+      - name: Configure ExportOptions.plist
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :teamID $TEAM_ID" poetry_stream/ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.ol1n.PoetryStreamSC $PROFILE_NAME" poetry_stream/ios/ExportOptions.plist
 
       - name: Build IPA (ad-hoc)
         working-directory: poetry_stream
