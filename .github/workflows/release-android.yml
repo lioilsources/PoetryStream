@@ -38,16 +38,9 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         run: |
           echo -n "$KEYSTORE_BASE64" | base64 --decode > poetry_stream/android/app/release.keystore
-          cat > poetry_stream/android/key.properties <<EOF
-          storePassword=$STORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=app/release.keystore
-          EOF
+          printf "storePassword=\nkeyPassword=\nkeyAlias=%s\nstoreFile=app/release.keystore\n" "$KEY_ALIAS" > poetry_stream/android/key.properties
 
       - name: Build release AAB
         working-directory: poetry_stream
