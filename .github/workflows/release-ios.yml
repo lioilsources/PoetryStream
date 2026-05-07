@@ -61,10 +61,16 @@ jobs:
           PROFILE_NAME=$(security cms -D -i "$PP_PATH" | plutil -extract Name raw -)
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
 
-      - name: Configure ExportOptions.plist
+      - name: Configure signing
         env:
           TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
+          # Switch Xcode project to manual signing
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' poetry_stream/ios/Runner.xcodeproj/project.pbxproj
+          # Set provisioning profile specifier for Release config
+          sed -i '' "/DEVELOPMENT_TEAM = $TEAM_ID;/a\\
+          				PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\";" poetry_stream/ios/Runner.xcodeproj/project.pbxproj
+          # Update ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Set :teamID $TEAM_ID" poetry_stream/ios/ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.ol1n.PoetryStreamSC $PROFILE_NAME" poetry_stream/ios/ExportOptions.plist
 
