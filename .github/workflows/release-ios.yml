@@ -54,36 +54,46 @@ jobs:
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode > $PP_PATH
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          # Install under UUID filename as Xcode expects
           UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
           cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
-          # Extract profile name for ExportOptions.plist
           PROFILE_NAME=$(security cms -D -i "$PP_PATH" | plutil -extract Name raw -)
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$UUID" >> $GITHUB_ENV
 
-      - name: Configure signing
+      - name: Build Flutter iOS (no codesign)
+        working-directory: poetry_stream
+        run: flutter build ios --release --no-codesign
+
+      - name: Archive with manual signing
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        working-directory: poetry_stream
+        run: |
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=Apple Distribution" \
+            "PROVISIONING_PROFILE_SPECIFIER=$PROFILE_NAME" \
+            DEVELOPMENT_TEAM=$TEAM_ID
+
+      - name: Export IPA
         env:
           TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
-          # Switch Xcode project to manual signing
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' poetry_stream/ios/Runner.xcodeproj/project.pbxproj
-          # Set provisioning profile specifier for Release config
-          sed -i '' "/DEVELOPMENT_TEAM = $TEAM_ID;/a\\
-          				PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\";" poetry_stream/ios/Runner.xcodeproj/project.pbxproj
-          # Update ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Set :teamID $TEAM_ID" poetry_stream/ios/ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.ol1n.PoetryStreamSC $PROFILE_NAME" poetry_stream/ios/ExportOptions.plist
-
-      - name: Build IPA (ad-hoc)
-        working-directory: poetry_stream
-        run: |
-          flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -exportOptionsPlist poetry_stream/ios/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/ipa
 
       - name: Upload IPA to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: poetry_stream/build/ios/ipa/*.ipa
+          files: ${{ runner.temp }}/ipa/*.ipa
           name: PoetryStream ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
