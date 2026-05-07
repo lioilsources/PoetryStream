@@ -10,7 +10,9 @@ plugins {
 
 val keyPropertiesFile = rootProject.file("key.properties")
 val keyProperties = Properties()
-keyProperties.load(FileInputStream(keyPropertiesFile))
+if (keyPropertiesFile.exists()) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
+}
 
 android {
     namespace = "com.ol1n.PoetryStreamSC"

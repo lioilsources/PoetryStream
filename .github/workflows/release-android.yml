@@ -27,7 +27,6 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.x'
           channel: stable
           cache: true
 
@@ -35,14 +34,29 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
-      - name: Build APK (debug)
+      - name: Create keystore and key.properties
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          echo -n "$KEYSTORE_BASE64" | base64 --decode > poetry_stream/android/app/release.keystore
+          cat > poetry_stream/android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=app/release.keystore
+          EOF
+
+      - name: Build release AAB
         working-directory: poetry_stream
-        run: flutter build apk --debug
+        run: flutter build appbundle --release
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: poetry_stream/build/app/outputs/flutter-apk/app-debug.apk
+          files: poetry_stream/build/app/outputs/bundle/release/app-release.aab
           name: PoetryStream ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
