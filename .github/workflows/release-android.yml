@@ -40,15 +40,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           echo -n "$KEYSTORE_BASE64" | base64 --decode > poetry_stream/android/app/release.keystore
-          # Keystore has empty password — set a temporary one so Gradle can read it
-          keytool -storepasswd -new "ci_password" \
-            -keystore poetry_stream/android/app/release.keystore \
-            -storepass ""
-          keytool -keypasswd -alias "$KEY_ALIAS" -new "ci_password" \
-            -keystore poetry_stream/android/app/release.keystore \
-            -storepass "ci_password" \
-            -keypass ""
-          printf "storePassword=ci_password\nkeyPassword=ci_password\nkeyAlias=%s\nstoreFile=release.keystore\n" "$KEY_ALIAS" > poetry_stream/android/key.properties
+          printf "storePassword=\nkeyPassword=\nkeyAlias=%s\nstoreFile=release.keystore\n" "$KEY_ALIAS" > poetry_stream/android/key.properties
 
       - name: Build release AAB
         working-directory: poetry_stream
