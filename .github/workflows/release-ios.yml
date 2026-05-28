@@ -73,10 +73,6 @@ jobs:
         working-directory: poetry_stream
         run: flutter build ios --release --no-codesign
 
-      - name: Inject profile name into project
-        run: |
-          sed -i '' "s/\"CI_PROFILE_NAME\"/\"$PROFILE_NAME\"/g" poetry_stream/ios/Runner.xcodeproj/project.pbxproj
-
       - name: Archive with manual signing
         env:
           TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
@@ -87,7 +83,9 @@ jobs:
             -scheme Runner \
             -configuration Release \
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            DEVELOPMENT_TEAM=$TEAM_ID
+            DEVELOPMENT_TEAM=$TEAM_ID \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            PROVISIONING_PROFILE=$PROFILE_UUID
 
       - name: Export IPA
         env:
