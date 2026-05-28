@@ -69,13 +69,13 @@ jobs:
           echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
           echo "PROFILE_UUID=$UUID" >> $GITHUB_ENV
 
-      - name: Inject profile name into project
-        run: |
-          sed -i '' "s/\"CI_PROFILE_NAME\"/\"$PROFILE_NAME\"/g" poetry_stream/ios/Runner.xcodeproj/project.pbxproj
-
       - name: Build Flutter iOS (no codesign)
         working-directory: poetry_stream
         run: flutter build ios --release --no-codesign
+
+      - name: Inject profile name into project
+        run: |
+          sed -i '' "s/\"CI_PROFILE_NAME\"/\"$PROFILE_NAME\"/g" poetry_stream/ios/Runner.xcodeproj/project.pbxproj
 
       - name: Archive with manual signing
         env:
