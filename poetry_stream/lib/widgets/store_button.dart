@@ -74,50 +74,13 @@ class _StoreSheet extends ConsumerWidget {
           // Header row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Sbírky básní',
-                  style: GoogleFonts.cormorantGaramond(
-                    fontSize: 22,
-                    color: Colors.white.withValues(alpha: 0.6),
-                    letterSpacing: 1,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: purchaseState.isRestoring
-                      ? null
-                      : () => ref
-                            .read(purchaseProvider.notifier)
-                            .restorePurchases(),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: purchaseState.isRestoring
-                        ? SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.5,
-                              color: Colors.white.withValues(alpha: 0.3),
-                            ),
-                          )
-                        : Text(
-                            'OBNOVIT',
-                            style: GoogleFonts.cormorantGaramond(
-                              fontSize: 12,
-                              letterSpacing: 1.5,
-                              color: Colors.white.withValues(alpha: 0.3),
-                            ),
-                          ),
-                  ),
-                ),
-              ],
+            child: Text(
+              'Sbírky básní',
+              style: GoogleFonts.cormorantGaramond(
+                fontSize: 22,
+                color: Colors.white.withValues(alpha: 0.6),
+                letterSpacing: 1,
+              ),
             ),
           ),
 
@@ -182,7 +145,7 @@ class _StoreSheet extends ConsumerWidget {
           // Store unavailable notice
           if (!purchaseState.isLoading && !purchaseState.isAvailable)
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
               child: Text(
                 'Obchod není dostupný. Zkontrolujte připojení.',
                 style: GoogleFonts.spectral(
@@ -191,6 +154,47 @@ class _StoreSheet extends ConsumerWidget {
                 ),
               ),
             ),
+
+          // Restore Purchases button — distinct, as required by App Store guideline 3.1.1
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: GestureDetector(
+              onTap: purchaseState.isRestoring
+                  ? null
+                  : () =>
+                      ref.read(purchaseProvider.notifier).restorePurchases(),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.07),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: purchaseState.isRestoring
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                        )
+                      : Text(
+                          'Obnovit nákupy',
+                          style: GoogleFonts.cormorantGaramond(
+                            fontSize: 15,
+                            letterSpacing: 1.2,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
