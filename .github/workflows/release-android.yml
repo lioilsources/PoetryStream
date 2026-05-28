@@ -34,6 +34,14 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
+      - name: Bump build number
+        working-directory: poetry_stream
+        run: |
+          BASE=$(grep '^version:' pubspec.yaml | sed -E 's/^version: ([0-9.]+).*/\1/')
+          NEW="${BASE}+${{ github.run_number }}"
+          sed -i -E "s/^version: .*/version: ${NEW}/" pubspec.yaml
+          echo "Build version: ${NEW}"
+
       - name: Create keystore and key.properties
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
