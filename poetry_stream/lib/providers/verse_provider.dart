@@ -19,7 +19,14 @@ class VerseNotifier extends StateNotifier<VerseState?> {
   void toggle() => _engine.toggle();
   void jumpToPoem(int poemIndex) => _engine.jumpToPoem(poemIndex);
 
+  /// Suspends the verse cycle while the user holds to keep reading.
+  void hold() => _engine.hold();
+
+  /// Resumes the cycle suspended by [hold].
+  void release() => _engine.release();
+
   bool get isPlaying => _engine.isPlaying;
+  bool get isHeld => _engine.isHeld;
   int get stanzaCount => _engine.stanzaCount;
   int get poemCount => _engine.poemCount;
 
