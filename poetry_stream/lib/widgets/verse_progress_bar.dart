@@ -43,7 +43,7 @@ class VerseProgressBar extends StatelessWidget {
               builder: (context, _) {
                 return FractionallySizedBox(
                   alignment: Alignment.centerLeft,
-                  widthFactor: progress.value.clamp(0.0, 1.0),
+                  widthFactor: progress.value.clamp(0.0, 1.0).toDouble(),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.5),
