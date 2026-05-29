@@ -51,6 +51,14 @@ class VerseEngine {
   Timer? _timer;
   bool _isPlaying = false;
 
+  // Hold-to-pause bookkeeping for the currently scheduled phase timer. Tracking
+  // the remaining time lets the user long-press to freeze the current verse and
+  // resume it exactly where it left off.
+  Duration? _pendingRemaining;
+  DateTime? _pendingStartedAt;
+  void Function()? _pendingCallback;
+  bool _isHeld = false;
+
   // Callback
   final void Function(VerseState state) onStateChanged;
 
@@ -60,6 +68,7 @@ class VerseEngine {
   }) : _config = config ?? const VerseEngineConfig();
 
   bool get isPlaying => _isPlaying;
+  bool get isHeld => _isHeld;
   int get stanzaCount => _allStanzas.length;
   int get poemCount => _poemStanzas.length;
 
@@ -105,12 +114,42 @@ class VerseEngine {
   void pause() {
     if (!_isPlaying) return;
     _isPlaying = false;
-    _timer?.cancel();
-    _timer = null;
+    _cancelPending();
   }
 
   void toggle() {
     _isPlaying ? pause() : play();
+  }
+
+  /// Temporarily suspends the verse cycle while the user holds (long-press) to
+  /// keep reading. The remaining time of the active phase is preserved so
+  /// [release] can resume exactly where it left off.
+  void hold() {
+    if (!_isPlaying || _isHeld) return;
+    _isHeld = true;
+    if (_pendingStartedAt != null && _pendingRemaining != null) {
+      final elapsed = DateTime.now().difference(_pendingStartedAt!);
+      var remaining = _pendingRemaining! - elapsed;
+      if (remaining < Duration.zero) remaining = Duration.zero;
+      _pendingRemaining = remaining;
+      _pendingStartedAt = null;
+    }
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  /// Resumes the cycle suspended by [hold].
+  void release() {
+    if (!_isHeld) return;
+    _isHeld = false;
+    if (!_isPlaying) return;
+    final cb = _pendingCallback;
+    final remaining = _pendingRemaining;
+    if (cb != null && remaining != null) {
+      _pendingStartedAt = DateTime.now();
+      _timer?.cancel();
+      _timer = Timer(remaining, cb);
+    }
   }
 
   /// Jump to the first stanza of the given poem index and restart playback.
@@ -132,9 +171,32 @@ class VerseEngine {
 
   // -- Private --
 
-  void _restartCycle() {
+  void _cancelPending() {
     _timer?.cancel();
     _timer = null;
+    _pendingStartedAt = null;
+    _pendingRemaining = null;
+    _pendingCallback = null;
+    _isHeld = false;
+  }
+
+  /// Schedules [cb] after [d], recording enough to pause/resume it via
+  /// [hold]/[release]. While held, the timer is not started but its remaining
+  /// time is banked for [release].
+  void _schedule(Duration d, void Function() cb) {
+    _timer?.cancel();
+    _pendingRemaining = d;
+    _pendingCallback = cb;
+    if (_isHeld) {
+      _pendingStartedAt = null;
+      return;
+    }
+    _pendingStartedAt = DateTime.now();
+    _timer = Timer(d, cb);
+  }
+
+  void _restartCycle() {
+    _cancelPending();
     if (_isPlaying) {
       _showNext();
     }
@@ -164,7 +226,7 @@ class VerseEngine {
     ));
 
     // Phase: display (after fadeIn completes)
-    _timer = Timer(_config.fadeInDuration, () {
+    _schedule(_config.fadeInDuration, () {
       onStateChanged(VerseState(
         text: ref.text,
         style: style,
@@ -175,7 +237,7 @@ class VerseEngine {
       ));
 
       // Phase: fadeOut (after display duration)
-      _timer = Timer(_config.displayDuration, () {
+      _schedule(_config.displayDuration, () {
         onStateChanged(VerseState(
           text: ref.text,
           style: style,
@@ -186,7 +248,7 @@ class VerseEngine {
         ));
 
         // Next verse (after fadeOut completes)
-        _timer = Timer(_config.fadeOutDuration, () {
+        _schedule(_config.fadeOutDuration, () {
           _showNext();
         });
       });
