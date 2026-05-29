@@ -97,6 +97,9 @@ class _StreamScreenState extends ConsumerState<StreamScreen>
         // The verse is on its way out; the bar is full and will reset on the
         // next fadeIn.
         break;
+      case VersePhase.hidden:
+        _progress.stop();
+        break;
     }
   }
 
@@ -130,7 +133,7 @@ class _StreamScreenState extends ConsumerState<StreamScreen>
     final settings = ref.watch(settingsProvider);
 
     // Drive the progress bar from verse state changes.
-    ref.listen(verseProvider, _onVerseState);
+    ref.listen<VerseState?>(verseProvider, _onVerseState);
 
     // Sync engine config when settings change
     ref.listen(settingsProvider, (prev, next) {
