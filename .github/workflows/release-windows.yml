@@ -31,14 +31,14 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
-      - name: Build Windows (debug)
+      - name: Build Windows (release)
         working-directory: poetry_stream
-        run: flutter build windows --debug
+        run: flutter build windows --release
 
       - name: Package as ZIP
         shell: pwsh
         run: |
-          $src = "poetry_stream\build\windows\x64\runner\Debug"
+          $src = "poetry_stream\build\windows\x64\runner\Release"
           $dest = "PoetryStream-${{ github.ref_name }}-Windows.zip"
           Compress-Archive -Path "$src\*" -DestinationPath $dest
 
