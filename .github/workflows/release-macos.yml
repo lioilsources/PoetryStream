@@ -28,13 +28,13 @@ jobs:
         working-directory: poetry_stream
         run: flutter pub get
 
-      - name: Build macOS (debug)
+      - name: Build macOS (release)
         working-directory: poetry_stream
-        run: flutter build macos --debug
+        run: flutter build macos --release
 
       - name: Package as ZIP
         run: |
-          cd "poetry_stream/build/macos/Build/Products/Debug"
+          cd "poetry_stream/build/macos/Build/Products/Release"
           zip -r "$OLDPWD/PoetryStream-${{ github.ref_name }}-macOS.zip" "poetry_stream.app"
 
       - name: Upload to GitHub Release
