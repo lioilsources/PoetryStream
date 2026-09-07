@@ -1,5 +1,8 @@
 # Changelog
 
+## [07/09/2026]
+- New paid collection: Kožní ambulance (18 poems)
+
 ## [20/02/2026]
 - Update README
 - Rename app to Poesie Simona Clinae
