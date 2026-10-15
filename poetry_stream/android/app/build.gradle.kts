@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ol1n.PoetryStreamSC"
+        applicationId = "com.ab.PoetryStreamSC"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
