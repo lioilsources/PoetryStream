@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/display_mode.dart';
+import '../l10n/l10n.dart';
 
 class ModeToggle extends StatelessWidget {
   final DisplayMode currentMode;
@@ -24,9 +25,9 @@ class ModeToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildOption(DisplayMode.stream, 'Stream'),
-          _buildOption(DisplayMode.reading, 'Báseň'),
-          _buildOption(DisplayMode.browsing, 'Čtení'),
+          _buildOption(DisplayMode.stream, context.l10n.modeStream),
+          _buildOption(DisplayMode.reading, context.l10n.modePoem),
+          _buildOption(DisplayMode.browsing, context.l10n.modeReading),
         ],
       ),
     );

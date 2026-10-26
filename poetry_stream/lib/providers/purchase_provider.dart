@@ -6,6 +6,7 @@ import '../data/purchase/purchase_service.dart';
 import '../data/repositories/collection_repository.dart';
 import '../models/purchase_state.dart';
 import 'poem_providers.dart';
+import '../l10n/l10n.dart';
 
 class PurchaseNotifier extends StateNotifier<PurchaseState> {
   final Ref _ref;
@@ -65,7 +66,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
       await PurchaseService.instance.buyCollection(product);
     } catch (e) {
       state = state.copyWith(
-        errorMessage: () => 'Nákup se nezdařil.',
+        errorMessage: () => deviceL10n.purchaseFailed,
       );
     }
   }
@@ -95,7 +96,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
         case PurchaseStatus.error:
           state = state.copyWith(
             errorMessage: () =>
-                details.error?.message ?? 'Chyba při nákupu.',
+                details.error?.message ?? deviceL10n.purchaseError,
           );
           _completePurchase(details);
           break;

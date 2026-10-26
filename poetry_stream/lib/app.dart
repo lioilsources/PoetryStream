@@ -5,6 +5,7 @@ import 'models/display_mode.dart';
 import 'providers/settings_provider.dart';
 import 'screens/stream_screen.dart';
 import 'screens/browsing_screen.dart';
+import 'l10n/l10n.dart';
 
 class PoetryStreamApp extends ConsumerWidget {
   const PoetryStreamApp({super.key});
@@ -13,6 +14,8 @@ class PoetryStreamApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Poesie Simona Clinae',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,

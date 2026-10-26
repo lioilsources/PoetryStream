@@ -6,6 +6,12 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>cs</string>
+		<string>en</string>
+		<string>sk</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Poesie Simona Clinae</string>
 	<key>CFBundleExecutable</key>

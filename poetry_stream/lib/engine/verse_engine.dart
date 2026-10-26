@@ -5,6 +5,7 @@ import '../models/verse_style.dart';
 import '../models/verse_state.dart';
 import '../models/display_mode.dart';
 import '../core/utils/stanza_parser.dart';
+import '../l10n/l10n.dart';
 
 class VerseEngineConfig {
   final Duration fadeInDuration;
@@ -342,7 +343,7 @@ class VerseEngine {
 
   String _poemTitle(int poemIndex) {
     final raw = poemIndex < _poemTitles.length ? _poemTitles[poemIndex] : '';
-    return raw.isNotEmpty ? raw : 'Báseň ${poemIndex + 1}';
+    return raw.isNotEmpty ? raw : deviceL10n.poemFallbackTitle(poemIndex + 1);
   }
 
   int _pickDifferentIndex(int length, int lastIndex) {

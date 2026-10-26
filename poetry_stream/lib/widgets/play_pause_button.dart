@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/l10n.dart';
 
 class PlayPauseButton extends StatefulWidget {
   final bool isPlaying;
@@ -86,7 +87,9 @@ class _PlayPauseButtonState extends State<PlayPauseButton>
             ),
             const SizedBox(width: 10),
             Text(
-              widget.isPlaying ? 'ŽIVĚ' : 'PAUZA',
+              widget.isPlaying
+                  ? context.l10n.playbackLive
+                  : context.l10n.playbackPaused,
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 14,
                 letterSpacing: 2,

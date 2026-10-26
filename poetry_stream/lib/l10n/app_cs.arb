@@ -1,0 +1,119 @@
+{
+  "@@locale": "cs",
+  "modeStream": "Stream",
+  "@modeStream": {
+    "description": "Display mode: verses streaming one by one"
+  },
+  "modePoem": "Báseň",
+  "@modePoem": {
+    "description": "Display mode: whole poem stanza by stanza"
+  },
+  "modeReading": "Čtení",
+  "@modeReading": {
+    "description": "Display mode: scrolling reading view"
+  },
+  "noPoems": "Žádné básně",
+  "@noPoems": {
+    "description": "Empty state in reading view"
+  },
+  "playbackLive": "ŽIVĚ",
+  "@playbackLive": {
+    "description": "Play/pause button label while playing"
+  },
+  "playbackPaused": "PAUZA",
+  "@playbackPaused": {
+    "description": "Play/pause button label while paused"
+  },
+  "addPoemButton": "+ BÁSEŇ",
+  "@addPoemButton": {
+    "description": "Button opening the paste-poem sheet"
+  },
+  "pastePoemTitle": "Vložit báseň",
+  "@pastePoemTitle": {
+    "description": "Title of the paste-poem sheet"
+  },
+  "save": "ULOŽIT",
+  "@save": {
+    "description": "Save button"
+  },
+  "pastePoemHint": "První řádek = název básně\n\nText básně…",
+  "@pastePoemHint": {
+    "description": "Hint in the paste-poem text field"
+  },
+  "storeTitle": "Sbírky básní",
+  "@storeTitle": {
+    "description": "Store sheet header"
+  },
+  "storeUnavailable": "Obchod není dostupný. Zkontrolujte připojení.",
+  "@storeUnavailable": {
+    "description": "Store not available message"
+  },
+  "restorePurchases": "Obnovit nákupy",
+  "@restorePurchases": {
+    "description": "Restore purchases button"
+  },
+  "unlocked": "ODEMČENO",
+  "@unlocked": {
+    "description": "Badge on an owned collection"
+  },
+  "buy": "KOUPIT",
+  "@buy": {
+    "description": "Buy button without known price"
+  },
+  "poemsButton": "BÁSNĚ",
+  "@poemsButton": {
+    "description": "Button opening the poem list"
+  },
+  "collections": "Sbírky",
+  "@collections": {
+    "description": "Section header in the poem list"
+  },
+  "myPoems": "Moje básně",
+  "@myPoems": {
+    "description": "Name of the user's own pasted poems collection"
+  },
+  "purchaseFailed": "Nákup se nezdařil.",
+  "@purchaseFailed": {
+    "description": "Purchase could not be started"
+  },
+  "purchaseError": "Chyba při nákupu.",
+  "@purchaseError": {
+    "description": "Fallback store error message"
+  },
+  "buyWithPrice": "KOUPIT {price}",
+  "@buyWithPrice": {
+    "description": "Buy button with localized store price",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "poemFallbackTitle": "Báseň {number}",
+  "@poemFallbackTitle": {
+    "description": "Title for a poem without a title",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "poemCount": "{count, plural, =1{1 báseň} few{{count} básně} other{{count} básní}}",
+  "@poemCount": {
+    "description": "Number of poems in a collection",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stanzaCount": "{count, plural, =1{1 strofa} few{{count} strofy} other{{count} strof}}",
+  "@stanzaCount": {
+    "description": "Number of stanzas in a poem",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

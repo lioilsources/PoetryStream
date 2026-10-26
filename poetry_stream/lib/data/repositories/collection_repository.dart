@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import '../../models/poem.dart';
 import '../../models/poem_collection.dart';
+import '../../l10n/l10n.dart';
 
 /// Dynamický seznam placených sbírek — naplněn při startu z YAML assetů.
 var availableCollections = <PoemCollection>[];
@@ -53,7 +54,7 @@ Future<void> initializeCollections() async {
 
 /// Vrátí zobrazitelný název sbírky podle jejího ID.
 String collectionDisplayTitle(String collectionId) {
-  if (collectionId == 'user') return 'Moje básně';
+  if (collectionId == 'user') return deviceL10n.myPoems;
   if (collectionId == 'default') return 'PRAVDU MÁ JEN JEDEN';
   return availableCollections
       .firstWhere(
