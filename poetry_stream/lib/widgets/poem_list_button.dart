@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/visual.dart';
 import '../data/repositories/collection_repository.dart';
 import '../models/poem.dart';
+import '../l10n/l10n.dart';
 
 class PoemListButton extends StatelessWidget {
   final List<Poem> poems;
@@ -44,7 +45,7 @@ class PoemListButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
-          'BÁSNĚ',
+          context.l10n.poemsButton,
           style: GoogleFonts.cormorantGaramond(
             fontSize: 14,
             letterSpacing: 2,
@@ -177,7 +178,7 @@ class _PoemListSheetState extends State<_PoemListSheet> {
                     final isCurrent = flatIndex == widget.currentPoemIndex;
                     final poemTitle = poem.title.isNotEmpty
                         ? poem.title
-                        : 'Báseň ${flatIndex + 1}';
+                        : context.l10n.poemFallbackTitle(flatIndex + 1);
                     final stanzaCount = poem.stanzas.length;
 
                     return GestureDetector(
@@ -206,7 +207,7 @@ class _PoemListSheetState extends State<_PoemListSheet> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$stanzaCount strof',
+                              context.l10n.stanzaCount(stanzaCount),
                               style: GoogleFonts.spectral(
                                 fontSize: 12,
                                 color: Colors.white.withValues(alpha: 0.25),
@@ -254,7 +255,7 @@ class _PoemListSheetState extends State<_PoemListSheet> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Sbírky',
+                context.l10n.collections,
                 style: GoogleFonts.cormorantGaramond(
                   fontSize: 22,
                   color: Colors.white.withValues(alpha: 0.6),

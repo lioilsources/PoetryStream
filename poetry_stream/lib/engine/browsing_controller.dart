@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/utils/stanza_parser.dart';
 import '../models/poem.dart';
+import '../l10n/l10n.dart';
 
 /// A single poem prepared for display in continuous scroll.
 class PoemViewModel {
@@ -126,7 +127,7 @@ class BrowsingController {
         final displayIndex = copy * _corpusLength + i;
         _displayPoems.add(PoemViewModel(
           corpusIndex: i,
-          title: poem.title.isNotEmpty ? poem.title : 'Báseň ${i + 1}',
+          title: poem.title.isNotEmpty ? poem.title : deviceL10n.poemFallbackTitle(i + 1),
           stanzas: splitIntoStanzas(poem.fullText),
         ));
         sectionKeys[displayIndex] = GlobalKey();

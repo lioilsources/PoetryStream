@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/visual.dart';
 import '../data/repositories/collection_repository.dart';
 import '../providers/purchase_provider.dart';
+import '../l10n/l10n.dart';
 
 class StoreButton extends StatelessWidget {
   const StoreButton({super.key});
@@ -75,7 +76,7 @@ class _StoreSheet extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: Text(
-              'Sbírky básní',
+              context.l10n.storeTitle,
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 22,
                 color: Colors.white.withValues(alpha: 0.6),
@@ -147,7 +148,7 @@ class _StoreSheet extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
               child: Text(
-                'Obchod není dostupný. Zkontrolujte připojení.',
+                context.l10n.storeUnavailable,
                 style: GoogleFonts.spectral(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.25),
@@ -184,7 +185,7 @@ class _StoreSheet extends ConsumerWidget {
                           ),
                         )
                       : Text(
-                          'Obnovit nákupy',
+                          context.l10n.restorePurchases,
                           style: GoogleFonts.cormorantGaramond(
                             fontSize: 15,
                             letterSpacing: 1.2,
@@ -246,7 +247,7 @@ class _CollectionTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${collection.poemCount} básní',
+                  context.l10n.poemCount(collection.poemCount),
                   style: GoogleFonts.spectral(
                     fontSize: 11,
                     color: Colors.white.withValues(alpha: 0.25),
@@ -268,7 +269,7 @@ class _CollectionTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'ODEMČENO',
+                context.l10n.unlocked,
                 style: GoogleFonts.cormorantGaramond(
                   fontSize: 12,
                   letterSpacing: 1.5,
@@ -289,7 +290,9 @@ class _CollectionTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  price != null ? 'KOUPIT $price' : 'KOUPIT',
+                  price != null
+                      ? context.l10n.buyWithPrice(price!)
+                      : context.l10n.buy,
                   style: GoogleFonts.cormorantGaramond(
                     fontSize: 12,
                     letterSpacing: 1.5,

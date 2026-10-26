@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/visual.dart';
+import '../l10n/l10n.dart';
 
 class PastePoemButton extends StatelessWidget {
   final void Function(String title, String text) onSubmit;
@@ -28,7 +29,7 @@ class PastePoemButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
-          '+ BÁSEŇ',
+          context.l10n.addPoemButton,
           style: GoogleFonts.cormorantGaramond(
             fontSize: 14,
             letterSpacing: 2,
@@ -106,7 +107,7 @@ class _PastePoemSheetState extends State<_PastePoemSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Vložit báseň',
+                  context.l10n.pastePoemTitle,
                   style: GoogleFonts.cormorantGaramond(
                     fontSize: 22,
                     color: Colors.white.withValues(alpha: 0.6),
@@ -123,7 +124,7 @@ class _PastePoemSheetState extends State<_PastePoemSheet> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      'ULOŽIT',
+                      context.l10n.save,
                       style: GoogleFonts.cormorantGaramond(
                         fontSize: 14,
                         letterSpacing: 2,
@@ -152,7 +153,7 @@ class _PastePoemSheetState extends State<_PastePoemSheet> {
                   height: 1.6,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'První řádek = název básně\n\nText básně…',
+                  hintText: context.l10n.pastePoemHint,
                   hintStyle: GoogleFonts.spectral(
                     fontSize: 16,
                     color: Colors.white.withValues(alpha: 0.15),

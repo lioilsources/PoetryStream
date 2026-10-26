@@ -11,6 +11,7 @@ import '../core/constants/build_config.dart';
 import '../widgets/paste_poem_button.dart';
 import '../widgets/poem_list_button.dart';
 import '../widgets/store_button.dart';
+import '../l10n/l10n.dart';
 
 class BrowsingScreen extends ConsumerStatefulWidget {
   const BrowsingScreen({super.key});
@@ -97,7 +98,7 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
         backgroundColor: VisualConstants.backgroundColor,
         body: Center(
           child: Text(
-            'Žádné básně',
+            context.l10n.noPoems,
             style: GoogleFonts.spectral(
               color: Colors.white.withValues(alpha: 0.3),
             ),
