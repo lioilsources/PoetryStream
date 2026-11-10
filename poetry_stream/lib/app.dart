@@ -16,6 +16,7 @@ class PoetryStreamApp extends ConsumerWidget {
       title: 'Poesie Simona Clinae',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      localeListResolutionCallback: resolveLocale,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
