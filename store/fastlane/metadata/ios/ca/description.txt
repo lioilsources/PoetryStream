@@ -1,0 +1,9 @@
+Poesie Simona Clinae és un llibre de poemes que no es llegeix tant com es veu fluir.
+
+• Flux: estrofes de tots els poemes passen soles, en ordre aleatori
+• Poema: un poema, estrofa a estrofa, a un ritme tranquil
+• Lectura: un poema sencer d'un cop; passa de poema en poema en bucle
+• Dues col·leccions són gratuïtes i dues més es compren una sola vegada, sense subscripció
+• Sense anuncis, sense comptes, sense seguiment
+
+Els poemes són en txec i no es tradueixen; la interfície de l'app està disponible en 45 idiomes. Els poemes parlen obertament del cos, la sexualitat, la malaltia, la mort i la fe, i en alguns punts usen un llenguatge cru.

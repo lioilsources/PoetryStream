@@ -37,7 +37,7 @@ Czech, so nobody buys a collection expecting translations.
 | Free or paid | — | Free (with in-app products) |
 | Category | — | **Books & Reference** |
 | Tags | — | pick from Play's list whatever is closest to: Poetry, Literature, Books, Relaxation/Meditation (Play offers a fixed list; max 5) |
-| Contact email | — | `oldrich.vorechovsky.jr@gmail.com` |
+| Contact email | — | `business@olin.now` |
 | Website | — | `https://lioilsources.github.io/PoetryStream/` |
 | Privacy Policy | — | `https://lioilsources.github.io/PoetryStream/privacy-policy.html` |
 
@@ -231,7 +231,7 @@ collections are not needed for review.
 
 ### Content rating (IARC questionnaire)
 
-Email: `oldrich.vorechovsky.jr@gmail.com`. Category: **"Reference, News, or
+Email: `business@olin.now`. Category: **"Reference, News, or
 Educational"** if offered, otherwise **"Entertainment"** (a poetry reader —
 static text, no game, no social features). Answer from the actual poems; they
 are mature literary verse. Found in `assets/poems/*.yaml`:
@@ -287,7 +287,7 @@ ambiguity later, bundle the fonts and set `allowRuntimeFetching = false`.
 
 - Play App Signing: on the new app, **accept the Google-generated app signing
   key** (default). The upload key is the existing one —
-  `/Users/ol1n/upload-keystore.jks`, alias `upload`, SHA-256
+  `<path>/upload-keystore.jks`, alias `upload`, SHA-256
   `C7:8F:50:4E:31:A7:25:8B:B5:5E:F1:72:C7:8E:EE:D5:C1:16:E9:F1:35:40:AC:53:8C:E0:7D:6A:50:FC:E0:B8`.
   Verified: the local `poetry_stream/android/key.properties` keystore and the
   CI-built v2.2.1 AAB (from the `ANDROID_KEYSTORE_BASE64` secret) carry the same
