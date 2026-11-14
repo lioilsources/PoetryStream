@@ -68,7 +68,7 @@ A meditative stream of Czech poetry. Verses drift by in gentle animations.
 
 ### Full description (4000)
 
-Czech – cs-CZ [1361]:
+Czech – cs-CZ [1443]:
 
 <!-- check: full_cs 4000 -->
 ```
@@ -91,13 +91,13 @@ TYPOGRAFIE
 Dvanáct písem, deset barevných palet s jemně zářícím textem, šest velikostí, občas kurzíva. Animované pozadí se zrnem připomíná papír ve tmě.
 
 SOUKROMÍ
-Žádné reklamy, žádné účty, žádné sledování ani analytika. Nastavení zůstává jen ve vašem zařízení.
+Žádné reklamy, žádné účty, žádná analytika třetích stran. Jen anonymní statistiky používání bez identifikátorů, které jdou v appce vypnout. Nastavení zůstává jen ve vašem zařízení.
 
 PRO DOSPĚLÉ ČTENÁŘE
 Básně otevřeně mluví o těle, sexualitě, nemoci, smrti a víře a místy používají hrubé výrazy.
 ```
 
-English – en-US [1462]:
+English – en-US [1551]:
 
 <!-- check: full_en 4000 -->
 ```
@@ -122,7 +122,7 @@ TYPOGRAPHY
 Twelve typefaces, ten colour palettes with softly glowing text, six sizes, the occasional italic. An animated, grainy background like paper in the dark.
 
 PRIVACY
-No ads, no accounts, no tracking, no analytics. Your settings never leave your device.
+No ads, no accounts, no third-party analytics. Only anonymous usage statistics with no identifiers, which you can switch off in the app. Your settings never leave your device.
 
 FOR ADULT READERS
 The poems speak openly about the body, sexuality, illness, death and faith, and use coarse language in places.
@@ -131,7 +131,9 @@ The poems speak openly about the body, sexuality, illness, death and faith, and 
 Every factual claim above is from the code: the three modes and their Czech
 labels (`mode_toggle.dart`), 12 fonts / 10 palettes / 6 sizes / italics
 (`visual.dart`), collection sizes (`assets/poems/*.yaml`), restore button
-("Obnovit nákupy"), no analytics/ads SDK in `pubspec.yaml`. "Funguje offline"
+("Obnovit nákupy"), no third-party analytics/ads SDK in `pubspec.yaml`
+(the anonymous statistics are the developer's own `ol1n_telemetry`, see
+`docs/telemetry.md`). "Funguje offline"
 is deliberately **not** claimed: fonts are fetched from Google Fonts at runtime
 (`GoogleFonts.config.allowRuntimeFetching = true`).
 
@@ -213,8 +215,9 @@ python3 store/play/tools/check_lengths.py
 
 ### Privacy policy
 `https://lioilsources.github.io/PoetryStream/privacy-policy.html` — content
-matches the code: no personal data, no accounts, no analytics/ads/crash SDKs,
-Google Fonts fetched at runtime, Play Billing for purchases, no Advertising ID
+matches the code: no personal data, no accounts, no third-party analytics/ads/
+crash SDKs, anonymous usage statistics to the developer's own server (with an
+in-app switch), Google Fonts fetched at runtime, Play Billing for purchases, no Advertising ID
 (the `AD_ID` permission is explicitly removed in the manifest). This branch
 adds the listed name "Poesie Simona Clinae" and the package
 `com.ab.PoetryStreamSC` to it — Play wants the policy to name the app or
@@ -261,6 +264,10 @@ policy already says the app is not for children, and choosing any under-13 or
 "Appeals to children": **No**.
 
 ### Data safety
+**For the build with anonymous statistics the answers change: see
+`store/privacy-answers.md`.** The answer below is valid only for builds
+without `TELEMETRY_KEY` (every build until the key is set).
+
 - Does your app collect or share any of the required user data types? **No.**
 - That ends the questionnaire (encryption and deletion questions are not shown
   when nothing is collected).
