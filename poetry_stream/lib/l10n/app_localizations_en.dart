@@ -99,4 +99,11 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get statsToggle => 'Anonymous statistics';
+
+  @override
+  String get statsToggleHint =>
+      'How the app is used, with no personal data. Helps improve it.';
 }

@@ -12,10 +12,10 @@ extension AppLocalizationsX on BuildContext {
 
 /// Localizations for code that has no BuildContext (engines, providers).
 /// Resolves against the device locales the same way MaterialApp does.
-AppLocalizations get deviceL10n {
-  final locale = basicLocaleListResolution(
-    PlatformDispatcher.instance.locales,
-    AppLocalizations.supportedLocales,
-  );
-  return lookupAppLocalizations(locale);
-}
+AppLocalizations get deviceL10n => lookupAppLocalizations(deviceLocale);
+
+/// The supported locale the app shows for the device locales.
+Locale get deviceLocale => basicLocaleListResolution(
+      PlatformDispatcher.instance.locales,
+      AppLocalizations.supportedLocales,
+    );

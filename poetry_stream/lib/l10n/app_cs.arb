@@ -115,5 +115,13 @@
         "type": "int"
       }
     }
+  },
+  "statsToggle": "Anonymní statistiky",
+  "@statsToggle": {
+    "description": "Switch for anonymous usage statistics (store sheet)"
+  },
+  "statsToggleHint": "Jak se appka používá, bez osobních údajů. Pomáhá ji zlepšovat.",
+  "@statsToggleHint": {
+    "description": "Subtitle of the anonymous statistics switch"
   }
 }

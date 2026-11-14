@@ -23,5 +23,7 @@
   "buyWithPrice": "KÚPIŤ {price}",
   "poemFallbackTitle": "Báseň {number}",
   "poemCount": "{count, plural, =1{1 báseň} few{{count} básne} other{{count} básní}}",
-  "stanzaCount": "{count, plural, =1{1 strofa} few{{count} strofy} other{{count} strof}}"
+  "stanzaCount": "{count, plural, =1{1 strofa} few{{count} strofy} other{{count} strof}}",
+  "statsToggle": "Anonymné štatistiky",
+  "statsToggleHint": "Ako sa appka používa, bez osobných údajov. Pomáha ju zlepšovať."
 }

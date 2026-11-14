@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ol1n_telemetry/ol1n_telemetry.dart';
 import '../core/constants/visual.dart';
 import '../data/repositories/collection_repository.dart';
 import '../providers/purchase_provider.dart';
 import '../l10n/l10n.dart';
+import '../telemetry/app_telemetry.dart';
 
 class StoreButton extends StatelessWidget {
   const StoreButton({super.key});
 
   void _openSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _StoreSheet(),
+    Telemetry.feature('store');
+    final purchase = ProviderScope.containerOf(context).read(purchaseProvider);
+    if (!purchase.isLoading && !purchase.isAvailable) {
+      Telemetry.errorShown('store_unavailable');
+    }
+    AppTelemetry.sheet(
+      'store',
+      () => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const _StoreSheet(),
+      ),
     );
   }
 
@@ -162,8 +172,9 @@ class _StoreSheet extends ConsumerWidget {
             child: GestureDetector(
               onTap: purchaseState.isRestoring
                   ? null
-                  : () =>
-                      ref.read(purchaseProvider.notifier).restorePurchases(),
+                  : () => ref
+                      .read(purchaseProvider.notifier)
+                      .userRestorePurchases(),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -196,7 +207,48 @@ class _StoreSheet extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Anonymous statistics switch; hidden in builds that cannot send.
+          if (Telemetry.isConfigured) const _StatsToggle(),
         ],
+      ),
+    );
+  }
+}
+
+class _StatsToggle extends StatefulWidget {
+  const _StatsToggle();
+
+  @override
+  State<_StatsToggle> createState() => _StatsToggleState();
+}
+
+class _StatsToggleState extends State<_StatsToggle> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+      child: SwitchListTile(
+        value: Telemetry.isEnabled,
+        onChanged: (on) async {
+          await Telemetry.setEnabled(on);
+          if (mounted) setState(() {});
+        },
+        activeThumbColor: const Color(0xFFA8C4D4),
+        title: Text(
+          context.l10n.statsToggle,
+          style: GoogleFonts.spectral(
+            fontSize: 15,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
+        subtitle: Text(
+          context.l10n.statsToggleHint,
+          style: GoogleFonts.spectral(
+            fontSize: 12,
+            color: Colors.white.withValues(alpha: 0.3),
+          ),
+        ),
       ),
     );
   }
@@ -279,7 +331,9 @@ class _CollectionTile extends StatelessWidget {
             )
           else
             GestureDetector(
-              onTap: isAvailable ? onBuy : null,
+              onTap: isAvailable
+                  ? onBuy
+                  : () => Telemetry.lockedTap('buy_unavailable'),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

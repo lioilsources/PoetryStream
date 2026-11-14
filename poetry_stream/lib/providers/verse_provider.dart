@@ -1,12 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../engine/verse_engine.dart';
+import '../models/display_mode.dart';
 import '../models/verse_state.dart';
+import '../telemetry/app_telemetry.dart';
+import 'poem_providers.dart';
 
 class VerseNotifier extends StateNotifier<VerseState?> {
   late final VerseEngine _engine;
 
-  VerseNotifier() : super(null) {
-    _engine = VerseEngine(onStateChanged: (s) => state = s);
+  VerseNotifier({void Function(int poemIndex)? onPoemFinished}) : super(null) {
+    _engine = VerseEngine(
+      onStateChanged: (s) => state = s,
+      onPoemFinished: onPoemFinished,
+    );
   }
 
   void setPoems(List<String> poems, List<String> titles) =>
@@ -39,5 +45,11 @@ class VerseNotifier extends StateNotifier<VerseState?> {
 
 final verseProvider =
     StateNotifierProvider<VerseNotifier, VerseState?>((ref) {
-  return VerseNotifier();
+  return VerseNotifier(onPoemFinished: (i) {
+    // The engine gets the poems in poemListProvider order (StreamScreen).
+    final poems = ref.read(poemListProvider);
+    if (i >= 0 && i < poems.length) {
+      AppTelemetry.poemFinished(DisplayMode.reading, poems[i].collectionId);
+    }
+  });
 });

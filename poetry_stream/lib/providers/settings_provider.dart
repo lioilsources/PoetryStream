@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:ol1n_telemetry/ol1n_telemetry.dart';
 import '../models/user_settings.dart';
 import '../models/display_mode.dart';
+import '../telemetry/app_telemetry.dart';
 
 class SettingsNotifier extends StateNotifier<UserSettings> {
   static const _boxName = 'settings';
@@ -24,6 +26,8 @@ class SettingsNotifier extends StateNotifier<UserSettings> {
         // Keep defaults on parse error
       }
     }
+    // The first screen is known once the saved mode is loaded.
+    AppTelemetry.showMode(state.displayMode);
   }
 
   Future<void> _save() async {
@@ -52,8 +56,18 @@ class SettingsNotifier extends StateNotifier<UserSettings> {
   }
 
   void setDisplayMode(DisplayMode mode) {
+    if (mode == state.displayMode) return;
     state = state.copyWith(displayMode: mode);
     _save();
+    switch (mode) {
+      case DisplayMode.reading:
+        Telemetry.feature('mode_reading');
+      case DisplayMode.browsing:
+        Telemetry.feature('mode_browsing');
+      case DisplayMode.stream:
+        break;
+    }
+    AppTelemetry.showMode(mode);
   }
 
   void setRandomizeStyle(bool value) {
