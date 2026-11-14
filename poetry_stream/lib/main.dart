@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'data/repositories/collection_repository.dart';
 import 'providers/purchase_provider.dart';
+import 'telemetry/app_telemetry.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,10 @@ void main() async {
 
   // Discover paid collections from assets/poems/*.yaml
   await initializeCollections();
+
+  // Anonymous usage statistics; silent in builds without TELEMETRY_KEY.
+  AppTelemetry.ownsCollection = await ownsAnyCollection();
+  await AppTelemetry.init();
 
   // Initialize purchase provider early to catch purchase stream events
   final container = ProviderContainer();

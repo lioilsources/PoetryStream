@@ -102,4 +102,11 @@ class AppLocalizationsSk extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get statsToggle => 'Anonymné štatistiky';
+
+  @override
+  String get statsToggleHint =>
+      'Ako sa appka používa, bez osobných údajov. Pomáha ju zlepšovať.';
 }

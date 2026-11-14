@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants/visual.dart';
 import '../engine/browsing_controller.dart';
+import '../models/display_mode.dart';
 import '../providers/poem_providers.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/animated_background.dart';
@@ -12,6 +13,7 @@ import '../widgets/paste_poem_button.dart';
 import '../widgets/poem_list_button.dart';
 import '../widgets/store_button.dart';
 import '../l10n/l10n.dart';
+import '../telemetry/app_telemetry.dart';
 
 class BrowsingScreen extends ConsumerStatefulWidget {
   const BrowsingScreen({super.key});
@@ -24,6 +26,11 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
   final BrowsingController _controller = BrowsingController();
   bool _initialized = false;
   int _currentPoemIndex = 0;
+
+  /// When the current poem became current (telemetry: a poem counts as read
+  /// when it is scrolled past after at least [_minPoemStay]).
+  DateTime _poemSince = DateTime.now();
+  static const _minPoemStay = Duration(seconds: 5);
 
   @override
   void initState() {
@@ -66,13 +73,27 @@ class _BrowsingScreenState extends ConsumerState<BrowsingScreen> {
     if (!_controller.hasContent) return;
     final idx = _controller.getCurrentPoemIndex();
     if (idx != _currentPoemIndex) {
+      _onPoemChanged(_currentPoemIndex, idx);
       setState(() => _currentPoemIndex = idx);
     }
+  }
+
+  void _onPoemChanged(int from, int to) {
+    final now = DateTime.now();
+    final poems = ref.read(poemListProvider);
+    final scrolledPast = poems.length > 1 && to == (from + 1) % poems.length;
+    if (scrolledPast &&
+        from < poems.length &&
+        now.difference(_poemSince) >= _minPoemStay) {
+      AppTelemetry.poemFinished(DisplayMode.browsing, poems[from].collectionId);
+    }
+    _poemSince = now;
   }
 
   void _onPoemSelected(int poemIndex) {
     final topInset = MediaQuery.of(context).padding.top + 68 + 20;
     _controller.scrollToPoem(poemIndex, topInset: topInset);
+    _poemSince = DateTime.now();
     setState(() => _currentPoemIndex = poemIndex);
   }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ol1n_telemetry/ol1n_telemetry.dart';
 import '../core/constants/visual.dart';
 import '../data/repositories/collection_repository.dart';
 import '../models/poem.dart';
 import '../l10n/l10n.dart';
+import '../telemetry/app_telemetry.dart';
 
 class PoemListButton extends StatelessWidget {
   final List<Poem> poems;
@@ -18,17 +20,22 @@ class PoemListButton extends StatelessWidget {
   });
 
   void _openSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _PoemListSheet(
-        poems: poems,
-        currentPoemIndex: currentPoemIndex,
-        onPoemSelected: (index) {
-          Navigator.of(context).pop();
-          onPoemSelected(index);
-        },
+    Telemetry.feature('poem_list');
+    AppTelemetry.sheet(
+      'poem_list',
+      () => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _PoemListSheet(
+          poems: poems,
+          currentPoemIndex: currentPoemIndex,
+          onPoemSelected: (index) {
+            Telemetry.feature('poem_pick');
+            Navigator.of(context).pop();
+            onPoemSelected(index);
+          },
+        ),
       ),
     );
   }

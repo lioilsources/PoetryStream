@@ -2,11 +2,26 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:ol1n_telemetry/ol1n_telemetry.dart';
 import '../data/purchase/purchase_service.dart';
 import '../data/repositories/collection_repository.dart';
 import '../models/purchase_state.dart';
 import 'poem_providers.dart';
 import '../l10n/l10n.dart';
+import '../telemetry/app_telemetry.dart';
+
+/// Whether this device has unlocked any paid collection (read once at start
+/// for the telemetry common property).
+Future<bool> ownsAnyCollection() async {
+  try {
+    final box = await Hive.openBox(PurchaseNotifier._boxName);
+    final raw = box.get(PurchaseNotifier._unlockedKey);
+    if (raw == null) return false;
+    return (jsonDecode(raw as String) as List).isNotEmpty;
+  } catch (_) {
+    return false;
+  }
+}
 
 class PurchaseNotifier extends StateNotifier<PurchaseState> {
   final Ref _ref;
@@ -15,7 +30,16 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
     _initialize();
   }
 
+  /// Open purchase flows by product id (telemetry only).
+  final Map<String, TelemetryFlow> _purchaseFlows = {};
+
+  /// The user-started restore in progress (telemetry only).
+  TelemetryFlow? _restoreFlow;
+  int _restoredCount = 0;
+  bool _restoreFailed = false;
+
   Future<void> _initialize() async {
+    final started = DateTime.now();
     // Start listening to purchase stream
     await PurchaseService.instance.initialize(
       onPurchaseUpdate: _handlePurchaseUpdate,
@@ -28,6 +52,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
     final available = await PurchaseService.instance.isAvailable();
 
     if (!available) {
+      _trackStoreReady(started, available: false, products: 0);
       state = state.copyWith(
         isAvailable: false,
         isLoading: false,
@@ -48,6 +73,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
       // Store query failed — continue with empty products
     }
 
+    _trackStoreReady(started, available: true, products: products.length);
     state = state.copyWith(
       isAvailable: true,
       isLoading: false,
@@ -61,14 +87,55 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
     }
   }
 
+  void _trackStoreReady(DateTime started,
+      {required bool available, required int products}) {
+    Telemetry.track('store_ready', {
+      'available': available,
+      'products': products.clamp(0, 100),
+      'ms': DateTime.now().difference(started).inMilliseconds.clamp(0, 60000),
+    });
+  }
+
+  String _collectionOf(String productId) =>
+      AppTelemetry.collectionValue(productIdToCollectionId[productId] ?? '');
+
   Future<void> purchaseCollection(ProductDetails product) async {
+    final collection = _collectionOf(product.id);
+    _purchaseFlows.remove(product.id)?.end('cancel', {'collection': collection});
+    _purchaseFlows[product.id] = Telemetry.flow('purchase',
+        {'collection': collection}, () => {'collection': collection});
     try {
       await PurchaseService.instance.buyCollection(product);
     } catch (e) {
-      state = state.copyWith(
-        errorMessage: () => deviceL10n.purchaseFailed,
-      );
+      _endPurchaseFlow(product.id, 'error');
+      _showError(deviceL10n.purchaseFailed);
     }
+  }
+
+  void _endPurchaseFlow(String productId, String result) {
+    _purchaseFlows
+        .remove(productId)
+        ?.end(result, {'collection': _collectionOf(productId)});
+  }
+
+  void _showError(String message) {
+    state = state.copyWith(errorMessage: () => message);
+    Telemetry.errorShown('purchase');
+    if (_restoreFlow != null) _restoreFailed = true;
+  }
+
+  /// Restore started from the store sheet (measured as a flow, unlike the
+  /// automatic restore on a fresh install).
+  Future<void> userRestorePurchases() async {
+    if (state.isRestoring) return;
+    Telemetry.feature('restore');
+    _restoredCount = 0;
+    _restoreFailed = false;
+    final f = _restoreFlow = Telemetry.flow(
+        'restore', const {}, () => {'collections': _restoredCount});
+    await restorePurchases();
+    _restoreFlow = null;
+    f.end(_restoreFailed ? 'error' : 'ok', {'collections': _restoredCount});
   }
 
   Future<void> restorePurchases() async {
@@ -94,16 +161,15 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
           _onPurchaseSuccess(details);
           break;
         case PurchaseStatus.error:
-          state = state.copyWith(
-            errorMessage: () =>
-                details.error?.message ?? deviceL10n.purchaseError,
-          );
+          _endPurchaseFlow(details.productID, 'error');
+          _showError(details.error?.message ?? deviceL10n.purchaseError);
           _completePurchase(details);
           break;
         case PurchaseStatus.pending:
           // Waiting for platform — no action needed
           break;
         case PurchaseStatus.canceled:
+          _endPurchaseFlow(details.productID, 'cancel');
           _completePurchase(details);
           break;
       }
@@ -118,8 +184,12 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
   Future<void> _onPurchaseSuccess(PurchaseDetails details) async {
     final collectionId = productIdToCollectionId[details.productID];
     if (collectionId != null) {
+      if (_restoreFlow != null && !state.isUnlocked(collectionId)) {
+        _restoredCount++;
+      }
       await _unlockCollection(collectionId);
     }
+    _endPurchaseFlow(details.productID, 'ok');
     await _completePurchase(details);
   }
 
@@ -134,6 +204,7 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
 
     // Update state
     final updatedIds = {...state.unlockedCollectionIds, collectionId};
+    AppTelemetry.ownsCollection = true;
     state = state.copyWith(
       unlockedCollectionIds: updatedIds,
       errorMessage: () => null,

@@ -75,6 +75,10 @@ Hive (`hive_flutter`) stores user settings as JSON in a "settings" box. Initiali
 - Poem text is split into stanzas on double newlines (`StanzaParser`)
 - Default poems (8, in Czech) are hardcoded in `core/constants/defaults.dart`
 
+## Telemetry
+
+Anonymous usage statistics via `ol1n_telemetry`: dictionary in `poetry_stream/lib/telemetry/`, documented in `docs/telemetry.md` (test keeps them equal). Silent without `TELEMETRY_KEY`/`TELEMETRY_HOST` dart-defines. A new event is a privacy-policy change.
+
 ## Language
 
 The app UI and all default poem content is in Czech.

@@ -243,6 +243,18 @@ abstract class AppLocalizations {
   /// In cs, this message translates to:
   /// **'{count, plural, =1{1 strofa} few{{count} strofy} other{{count} strof}}'**
   String stanzaCount(int count);
+
+  /// Switch for anonymous usage statistics (store sheet)
+  ///
+  /// In cs, this message translates to:
+  /// **'Anonymní statistiky'**
+  String get statsToggle;
+
+  /// Subtitle of the anonymous statistics switch
+  ///
+  /// In cs, this message translates to:
+  /// **'Jak se appka používá, bez osobních údajů. Pomáhá ji zlepšovat.'**
+  String get statsToggleHint;
 }
 
 class _AppLocalizationsDelegate

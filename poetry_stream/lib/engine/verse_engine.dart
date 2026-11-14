@@ -63,8 +63,14 @@ class VerseEngine {
   // Callback
   final void Function(VerseState state) onStateChanged;
 
+  /// Called in the sequential mode when the last stanza of a poem has been
+  /// shown in full (it starts to fade out). The argument is the poem's index
+  /// in the list given to [setPoems].
+  final void Function(int poemIndex)? onPoemFinished;
+
   VerseEngine({
     required this.onStateChanged,
+    this.onPoemFinished,
     VerseEngineConfig? config,
   }) : _config = config ?? const VerseEngineConfig();
 
@@ -247,6 +253,7 @@ class VerseEngine {
           poemTitle: title,
           stanzaIndex: stanzaIdx,
         ));
+        if (ref.lastOfPoem) onPoemFinished?.call(ref.poemIndex);
 
         // Next verse (after fadeOut completes)
         _schedule(_config.fadeOutDuration, () {
@@ -300,7 +307,13 @@ class VerseEngine {
     final text = stanzas[_seqStanzaIndex];
     final title = _poemTitle(poemIdx);
 
-    final ref = _StanzaRef(text: text, title: title, stanzaIndex: _seqStanzaIndex);
+    final ref = _StanzaRef(
+      text: text,
+      title: title,
+      stanzaIndex: _seqStanzaIndex,
+      poemIndex: poemIdx,
+      lastOfPoem: _seqStanzaIndex == stanzas.length - 1,
+    );
 
     _seqStanzaIndex++;
     if (_seqStanzaIndex >= stanzas.length) {
@@ -360,10 +373,16 @@ class _StanzaRef {
   final String text;
   final String title;
   final int stanzaIndex;
+  final int poemIndex;
+
+  /// The last stanza of its poem in the sequential mode.
+  final bool lastOfPoem;
 
   const _StanzaRef({
     required this.text,
     required this.title,
     required this.stanzaIndex,
+    this.poemIndex = -1,
+    this.lastOfPoem = false,
   });
 }

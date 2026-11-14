@@ -23,5 +23,7 @@
   "buyWithPrice": "BUY {price}",
   "poemFallbackTitle": "Poem {number}",
   "poemCount": "{count, plural, =1{1 poem} other{{count} poems}}",
-  "stanzaCount": "{count, plural, =1{1 stanza} other{{count} stanzas}}"
+  "stanzaCount": "{count, plural, =1{1 stanza} other{{count} stanzas}}",
+  "statsToggle": "Anonymous statistics",
+  "statsToggleHint": "How the app is used, with no personal data. Helps improve it."
 }

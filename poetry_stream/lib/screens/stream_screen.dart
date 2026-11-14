@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ol1n_telemetry/ol1n_telemetry.dart';
 import '../core/constants/visual.dart';
 import '../engine/verse_engine.dart';
 import '../models/verse_state.dart';
@@ -104,6 +105,7 @@ class _StreamScreenState extends ConsumerState<StreamScreen>
   }
 
   void _handlePlayPause() {
+    Telemetry.feature('pause');
     final notifier = ref.read(verseProvider.notifier);
     notifier.toggle();
     // On resume, play() emits a fresh fadeIn which restarts the bar via the
@@ -114,6 +116,7 @@ class _StreamScreenState extends ConsumerState<StreamScreen>
   }
 
   void _handleHoldStart() {
+    Telemetry.feature('hold');
     ref.read(verseProvider.notifier).hold();
     _progress.stop();
   }
